@@ -1,0 +1,5 @@
+app:
+  jibit-url: https://api.jibit.ir/ppg/v2
+  vandar:
+    ipg-url: https://ipg.vandar.io/api/v3
+    data-url: https://vandar.io/api/ipg
