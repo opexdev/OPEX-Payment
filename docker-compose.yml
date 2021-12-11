@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  postgres-payment:
+    image: "postgres"
+    ports:
+      - 127.0.0.1:5455:5432
+    environment:
+      - POSTGRES_USER=opex
+      - POSTGRES_PASSWORD=hiopex
+      - POSTGRES_DB=opex_payment
+    volumes:
+      - $DATA/opex-payment-data:/var/lib/postgresql/data/
+    networks:
+      - opex-payment
+
+  payment:
+    container_name: payment
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    ports:
+      - 127.0.0.1:9995:9995
+      - 127.0.0.1:1070:1044
+    environment:
+      - JAVA_OPTS=-Xmx256m -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=1044
+      - SPRING_PROFILES_ACTIVE=docker
+      - DB_IP_PORT=postgres-payment
+    networks:
+      - opex-payment
+    depends_on:
+      - postgres-gateway
+    deploy:
+      restart_policy:
+        condition: on-failure
+
+networks:
+  opex-payment:
+    name: opex-payment
+    driver: bridge
