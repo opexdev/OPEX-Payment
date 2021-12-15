@@ -26,10 +26,11 @@ services:
       - JAVA_OPTS=-Xmx256m -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=1044
       - SPRING_PROFILES_ACTIVE=docker
       - DB_IP_PORT=postgres-payment
+      - VANDAR_API_KEY=${VANDAR_API_KEY}
     networks:
       - opex-payment
     depends_on:
-      - postgres-gateway
+      - postgres-payment
     deploy:
       restart_policy:
         condition: on-failure

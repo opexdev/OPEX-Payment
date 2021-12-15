@@ -3,5 +3,6 @@ spring:
     url: r2dbc:postgresql://${DB_IP_PORT}/opex_payment
     username: opex
     password: hiopex
-  main:
-    allow-bean-definition-overriding: true
+app:
+  vandar:
+    api-key: ${VANDAR_API_KEY}

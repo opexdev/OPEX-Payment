@@ -1,5 +1,18 @@
+server.port: 9995
+spring:
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5455/opex_payment
+    username: opex
+    password: hiopex
+  main:
+    allow-bean-definition-overriding: true
+logging:
+  level:
+    co.nilin: DEBUG
+    reactor.netty.http.client: DEBUG
 app:
   jibit-url: https://api.jibit.ir/ppg/v2
   vandar:
     ipg-url: https://ipg.vandar.io/api/v3
+    redirect-url: https://ipg.vandar.io/v3
     data-url: https://vandar.io/api/ipg

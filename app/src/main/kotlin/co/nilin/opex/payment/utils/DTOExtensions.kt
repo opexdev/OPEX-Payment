@@ -1,10 +1,10 @@
 package co.nilin.opex.payment.utils
 
-import co.nilin.opex.payment.model.InvoiceModel
-import com.opex.payment.core.model.Invoice
+import co.nilin.opex.payment.model.Invoice
+import com.opex.payment.core.model.InvoiceDTO
 
-fun InvoiceModel.toInvoiceDTO() = Invoice(
-    id!!,
+fun Invoice.toInvoiceDTO() = InvoiceDTO(
+    id,
     userId,
     reference,
     amount,
@@ -13,10 +13,11 @@ fun InvoiceModel.toInvoiceDTO() = Invoice(
     createDate,
     updateDate,
     status,
-    gatewayId,
+    gatewayRequestId,
     gatewayStatus,
     description,
     cardNumber,
     mobile,
-    nationalCode
+    nationalCode,
+    isNotified
 )

@@ -1,13 +1,11 @@
 package co.nilin.opex.payment.model
 
+import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Table
 
-@Table
+@Table("payment_gateway")
 data class PaymentGatewayModel(
     val name: String,
-    val nameFa: String,
-    val gatewayUrl: String,
-    val apiUrl: String,
     var isEnabled: Boolean,
-    var id: Long? = null
+    @Id var id: Long? = null
 )
