@@ -14,6 +14,7 @@ import org.springframework.beans.factory.BeanFactory
 import org.springframework.beans.factory.getBean
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
+import java.time.LocalDateTime
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
@@ -57,9 +58,12 @@ class ScheduledInvoiceVerifierService(
         val service = getGatewayService(gatewayModel.name)
         val response = service.verify(invoice.toInvoiceDTO())
         invoice.status = response.status
+        invoice.updateDate = LocalDateTime.now()
+        invoiceRepository.save(invoice).awaitFirst()
 
         val isNotified = opexBridgeService.notifyDeposit(invoice)
         invoice.isNotified = isNotified
+        invoice.updateDate = LocalDateTime.now()
 
         invoiceRepository.save(invoice).awaitFirst()
     }

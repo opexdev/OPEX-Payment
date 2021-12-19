@@ -1,4 +1,4 @@
-package co.nilin.opex.payment.logger
+package co.nilin.opex.payment.utils.logger
 
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.ByteBufHolder

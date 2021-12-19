@@ -1,6 +1,6 @@
 package co.nilin.opex.payment.config
 
-import co.nilin.opex.payment.logger.CustomLogger
+import co.nilin.opex.payment.utils.logger.CustomLogger
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.client.reactive.ReactorClientHttpConnector

@@ -1,4 +1,4 @@
-package co.nilin.opex.payment.logger;
+package co.nilin.opex.payment.utils.logger;
 
 import io.netty.buffer.UnpooledByteBufAllocator;
 import org.slf4j.Logger;

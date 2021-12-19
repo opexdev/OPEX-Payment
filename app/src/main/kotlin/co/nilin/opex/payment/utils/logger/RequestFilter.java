@@ -1,6 +1,6 @@
-package co.nilin.opex.payment.logger;
+package co.nilin.opex.payment.utils.logger;
 
-import co.nilin.opex.payment.logger.decorators.PayloadServerWebExchangeDecorator;
+import co.nilin.opex.payment.utils.logger.decorators.PayloadServerWebExchangeDecorator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.Order;

@@ -6,8 +6,12 @@ import co.nilin.opex.payment.data.InvoiceAndUrl
 import co.nilin.opex.payment.data.RequestPaymentRequest
 import co.nilin.opex.payment.model.Invoice
 import co.nilin.opex.payment.model.PaymentGatewayModel
+import co.nilin.opex.payment.utils.equalsAny
+import co.nilin.opex.payment.utils.error.AppError
+import co.nilin.opex.payment.utils.error.AppException
 import co.nilin.opex.payment.utils.toInvoiceDTO
 import com.opex.payment.core.Gateways
+import com.opex.payment.core.model.InvoiceStatus
 import com.opex.payment.core.spi.PaymentGateway
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
@@ -16,6 +20,7 @@ import org.springframework.beans.factory.getBean
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.security.Principal
+import java.time.LocalDateTime
 
 @Service
 class PaymentService(
@@ -52,26 +57,43 @@ class PaymentService(
     }
 
     suspend fun verifyInvoice(requestId: String, status: String): Invoice {
-        val invoice = invoiceRepository.findByGatewayRequestId(requestId)
-            .awaitFirstOrNull() ?: throw IllegalStateException("payment not found")
+        var invoice = invoiceRepository.findByGatewayRequestId(requestId)
+            .awaitFirstOrNull() ?: throw AppException(AppError.NotFound, "Payment not found")
 
         val gatewayModel = gatewayRepository.findById(invoice.paymentGatewayId).awaitFirst()
         val service = getGatewayService(gatewayModel.name)
-        val response = service.verify(invoice.toInvoiceDTO())
-        invoice.status = response.status
 
-        val isNotified = opexBridgeService.notifyDeposit(invoice)
-        invoice.isNotified = isNotified
+        if (invoice.status.equalsAny(InvoiceStatus.Expired, InvoiceStatus.Failed, InvoiceStatus.Undefined))
+            throw AppException(AppError.VerificationNotAllowed)
 
-        return invoiceRepository.save(invoice).awaitFirst()
+        if (invoice.status == InvoiceStatus.Done)
+            throw AppException(AppError.AlreadyVerified)
+
+        if (invoice.status == InvoiceStatus.New) {
+            val response = service.verify(invoice.toInvoiceDTO())
+            if (response.status == InvoiceStatus.Undefined)
+                throw AppException(AppError.VerificationFailed)
+
+            invoice.status = response.status
+            invoice.updateDate = LocalDateTime.now()
+            invoice = invoiceRepository.save(invoice).awaitFirst()
+        }
+
+        if (!invoice.isNotified) {
+            invoice.isNotified = opexBridgeService.notifyDeposit(invoice)
+            invoice.updateDate = LocalDateTime.now()
+            invoice = invoiceRepository.save(invoice).awaitFirst()
+        }
+
+        return invoice
     }
 
     private suspend fun getGateway(name: String?): PaymentGatewayModel {
         val gateway = gatewayRepository.findByName(name ?: Gateways.Vandar)
-            .awaitFirstOrNull() ?: throw IllegalStateException("gateway not found")
+            .awaitFirstOrNull() ?: throw AppException(AppError.NotFound, "Gateway not found")
 
         if (!gateway.isEnabled)
-            throw IllegalStateException("gateway is disabled")
+            throw AppException(AppError.BadRequest, "Gateway is disabled")
 
         return gateway
     }

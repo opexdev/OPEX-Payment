@@ -46,7 +46,7 @@ class VandarPaymentGateway(private val proxy: VandarProxy) : PaymentGateway {
 
         val response = proxy.verifyTransaction(apiKey, invoice.gatewayId!!)
         val status = when (response.status) {
-            0 -> throw IllegalArgumentException("")
+            0 -> InvoiceStatus.Undefined
             1 -> InvoiceStatus.Done
             2 -> InvoiceStatus.Done
             3 -> InvoiceStatus.Expired

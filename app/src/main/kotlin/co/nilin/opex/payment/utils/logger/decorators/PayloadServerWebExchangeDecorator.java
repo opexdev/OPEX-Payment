@@ -1,4 +1,4 @@
-package co.nilin.opex.payment.logger.decorators;
+package co.nilin.opex.payment.utils.logger.decorators;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
