@@ -3,7 +3,6 @@ package co.nilin.opex.payment.data
 import com.opex.payment.core.model.Currency
 
 data class RequestPaymentRequest(
-    val userId: String,
     val amount: Double,
     val callbackUrl:String,
     val currency: Currency,

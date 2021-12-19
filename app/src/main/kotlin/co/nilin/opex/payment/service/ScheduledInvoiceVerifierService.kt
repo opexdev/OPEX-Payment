@@ -9,11 +9,11 @@ import com.opex.payment.core.spi.PaymentGateway
 import kotlinx.coroutines.*
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrElse
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.BeanFactory
 import org.springframework.beans.factory.getBean
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
@@ -25,6 +25,7 @@ class ScheduledInvoiceVerifierService(
     private val gatewayRepository: PaymentGatewayRepository
 ) {
 
+    private val logger = LoggerFactory.getLogger(ScheduledInvoiceVerifierService::class.java)
     private val executor = Executors.newSingleThreadExecutor()
 
     @Scheduled(fixedDelay = 60000)
@@ -38,12 +39,20 @@ class ScheduledInvoiceVerifierService(
             .collectList()
             .awaitFirstOrElse { emptyList() }
             .take(10)
+            .also { if(it.isNotEmpty()) logger.info("verifying ${it.size} invoices") }
             .forEach { verify(it) }
+
+        val notifyTime = Interval(1, TimeUnit.MINUTES).getLocalDateTime()
+        invoiceRepository.findAllDoneButNotNotifiedOlderThan(notifyTime)
+            .collectList()
+            .awaitFirstOrElse { emptyList() }
+            .take(10)
+            .also { if(it.isNotEmpty()) logger.info("notifying ${it.size} invoices") }
+            .forEach { notify(it) }
     }
 
-    @Transactional
     suspend fun verify(invoice: Invoice) {
-        delay(1000)
+        delay(2000)
         val gatewayModel = gatewayRepository.findById(invoice.paymentGatewayId).awaitFirst()
         val service = getGatewayService(gatewayModel.name)
         val response = service.verify(invoice.toInvoiceDTO())
@@ -52,6 +61,12 @@ class ScheduledInvoiceVerifierService(
         val isNotified = opexBridgeService.notifyDeposit(invoice)
         invoice.isNotified = isNotified
 
+        invoiceRepository.save(invoice).awaitFirst()
+    }
+
+    suspend fun notify(invoice: Invoice) {
+        delay(2000)
+        invoice.isNotified = opexBridgeService.notifyDeposit(invoice)
         invoiceRepository.save(invoice).awaitFirst()
     }
 

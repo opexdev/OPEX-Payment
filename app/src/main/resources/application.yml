@@ -11,6 +11,9 @@ logging:
     co.nilin: DEBUG
     reactor.netty.http.client: DEBUG
 app:
+  opex:
+    wallet-url: http://wallet:8091
+    cert-url: http://auth:8083/auth/realms/opex/protocol/openid-connect/certs
   jibit-url: https://api.jibit.ir/ppg/v2
   vandar:
     ipg-url: https://ipg.vandar.io/api/v3

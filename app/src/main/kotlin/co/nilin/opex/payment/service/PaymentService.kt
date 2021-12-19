@@ -51,7 +51,6 @@ class PaymentService(
         return InvoiceAndUrl(saved, redirect)
     }
 
-    @Transactional
     suspend fun verifyInvoice(requestId: String, status: String): Invoice {
         val invoice = invoiceRepository.findByGatewayRequestId(requestId)
             .awaitFirstOrNull() ?: throw IllegalStateException("payment not found")

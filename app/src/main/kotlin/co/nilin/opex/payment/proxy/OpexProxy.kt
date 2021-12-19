@@ -1,6 +1,8 @@
 package co.nilin.opex.payment.proxy
 
+import co.nilin.opex.payment.model.Invoice
 import com.opex.payment.core.model.Currency
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
@@ -11,16 +13,30 @@ import reactor.core.publisher.Mono
 @Component
 class OpexProxy(private val client: WebClient) {
 
-    data class DepositRequest(val userId: String, val amount: Double, val currency: Currency)
+    @Value("\${app.opex.wallet-url}")
+    private lateinit var walletUrl: String
 
-    suspend fun deposit(userId: String, amount: Double, currency: Currency) {
-        client.post()
-            .uri("")
+    data class DepositRequest(
+        val userId: String,
+        val amount: Double,
+        val currency: Currency,
+        val reference: String,
+        val description: String?
+    )
+
+    data class DepositResponse(val success: Boolean)
+
+    suspend fun deposit(invoice: Invoice): DepositResponse {
+        val request = with(invoice) {
+            DepositRequest(userId, amount, currency, reference, description)
+        }
+        return client.post()
+            .uri("$walletUrl/payment/internal/deposit")
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
-            .body(Mono.just(DepositRequest(userId, amount, currency)))
+            .body(Mono.just(request))
             .retrieve()
-            .awaitBody<String>()
+            .awaitBody()
     }
 
 }

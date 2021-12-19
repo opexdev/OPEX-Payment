@@ -1,5 +1,6 @@
 package co.nilin.opex.payment.config
 
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.core.io.ClassPathResource
 import org.springframework.core.io.Resource
@@ -17,6 +18,9 @@ import java.security.spec.X509EncodedKeySpec
 @EnableWebFluxSecurity
 class SecurityConfig {
 
+    @Value("\${app.opex.cert-url}")
+    private lateinit var jwkUrl: String
+
     @Bean
     fun springSecurityFilterChain(http: ServerHttpSecurity): SecurityWebFilterChain? {
         http.csrf().disable()
@@ -32,14 +36,7 @@ class SecurityConfig {
     @Bean
     @Throws(Exception::class)
     fun reactiveJwtDecoder(): ReactiveJwtDecoder? {
-        val resource: Resource = ClassPathResource("/public.cert")
-        val publicKey = String(FileCopyUtils.copyToByteArray(resource.inputStream))
-            .replace("\r", "")
-            .replace("-----BEGIN PUBLIC KEY-----\n", "")
-            .replace("\n-----END PUBLIC KEY-----", "")
-        val spec = X509EncodedKeySpec(Base64Utils.decodeFromString(publicKey))
-        val kf = KeyFactory.getInstance("RSA")
-        return NimbusReactiveJwtDecoder(kf.generatePublic(spec) as RSAPublicKey)
+        return NimbusReactiveJwtDecoder.withJwkSetUri(jwkUrl).build()
     }
 
 }
