@@ -8,8 +8,13 @@ import org.springframework.stereotype.Service
 class OpexBridgeService(private val opexProxy: OpexProxy) {
 
     suspend fun notifyDeposit(invoice: Invoice): Boolean {
-        val response = opexProxy.deposit(invoice.userId, invoice.amount, invoice.currency)
-        return true
+        val response = try {
+            opexProxy.deposit(invoice).success
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+        return response
     }
 
 }
