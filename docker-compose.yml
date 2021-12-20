@@ -20,6 +20,7 @@ services:
       context: ./app
       dockerfile: Dockerfile
     ports:
+      - 0.0.0.0:9995:9995
       - 127.0.0.1:9995:9995
       - 127.0.0.1:1070:1044
     environment:
