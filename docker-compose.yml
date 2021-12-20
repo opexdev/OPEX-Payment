@@ -38,5 +38,5 @@ services:
 networks:
   opex-payment:
     external:
-      name: deployment_opex
+      name: demo_opex
     driver: bridge
