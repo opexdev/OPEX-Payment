@@ -10,14 +10,14 @@ import com.opex.payment.core.spi.PaymentGateway
 import co.nilin.opex.payment.gateway.vandar.proxy.VandarProxy
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.core.env.Environment
 import org.springframework.stereotype.Component
 
 @Component(Gateways.Vandar)
-class VandarPaymentGateway(private val proxy: VandarProxy) : PaymentGateway {
+class VandarPaymentGateway(private val proxy: VandarProxy, private val env: Environment) : PaymentGateway {
 
     private val logger = LoggerFactory.getLogger(VandarPaymentGateway::class.java)
 
-    //@Value("#{environment.VANDAR_API_KEY}")
     @Value("\${app.vandar.api-key}")
     private lateinit var apiKey: String
 

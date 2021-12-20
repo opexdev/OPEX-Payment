@@ -17,7 +17,7 @@ pipeline {
                 DATA = '/var/opex/payment-gateway'
             }
             steps {
-                dir("Deployment") {
+                dir(".") {
                     sh 'docker-compose up -d --build'
                 }
             }

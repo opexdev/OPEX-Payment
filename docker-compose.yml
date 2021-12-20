@@ -34,6 +34,8 @@ services:
     deploy:
       restart_policy:
         condition: on-failure
+    env_file:
+      - .env
 
 networks:
   opex-payment:
