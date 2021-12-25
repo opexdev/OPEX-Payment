@@ -14,6 +14,7 @@ import com.opex.payment.core.Gateways
 import com.opex.payment.core.model.InvoiceStatus
 import com.opex.payment.core.spi.PaymentGateway
 import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.coroutines.reactive.awaitFirstOrElse
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.beans.factory.BeanFactory
 import org.springframework.beans.factory.getBean
@@ -34,6 +35,13 @@ class PaymentService(
     suspend fun createNewInvoice(principal: Principal, request: RequestPaymentRequest): InvoiceAndUrl {
         val gatewayModel = getGateway(request.paymentGatewayName)
         val service = getGatewayService(gatewayModel.name)
+        val userOpenInvoices = invoiceRepository.findByUserIdAndStatus(principal.name, InvoiceStatus.New)
+            .collectList()
+            .awaitFirstOrElse { emptyList() }
+
+        if (userOpenInvoices.isNotEmpty())
+            throw AppException(AppError.OpenPayments)
+
         val invoice = with(request) {
             Invoice(
                 principal.name,
@@ -86,6 +94,20 @@ class PaymentService(
         }
 
         return invoice
+    }
+
+    suspend fun cancel(principal: Principal, reference: String): Invoice {
+        val invoice = invoiceRepository.findByReference(reference).awaitFirstOrNull()
+            ?: throw AppException(AppError.NotFound, "Payment not found")
+
+        if (principal.name != invoice.userId)
+            throw AppException(AppError.Forbidden)
+
+        invoice.apply {
+            status = InvoiceStatus.Canceled
+            updateDate = LocalDateTime.now()
+        }
+        return invoiceRepository.save(invoice).awaitFirst()
     }
 
     private suspend fun getGateway(name: String?): PaymentGatewayModel {
