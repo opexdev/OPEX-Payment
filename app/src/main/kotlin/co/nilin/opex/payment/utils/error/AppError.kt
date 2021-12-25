@@ -14,7 +14,8 @@ enum class AppError(val code: Int, val message: String?, val status: HttpStatus)
 
     AlreadyVerified(13000, "This payment is already verified", HttpStatus.BAD_REQUEST),
     VerificationFailed(13001, "Unable to verify", HttpStatus.INTERNAL_SERVER_ERROR),
-    VerificationNotAllowed(13002, "Verification is not allowed for this payment", HttpStatus.BAD_REQUEST);
+    VerificationNotAllowed(13002, "Verification is not allowed for this payment", HttpStatus.BAD_REQUEST),
+    OpenPayments(13003, "Found open payments for user. Finish or cancel open payments", HttpStatus.BAD_REQUEST);
 
     companion object {
         fun findByCode(code: Int?): AppError? {

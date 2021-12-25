@@ -1,5 +1,6 @@
 package co.nilin.opex.payment.controller
 
+import co.nilin.opex.payment.data.CancelOrderResponse
 import co.nilin.opex.payment.data.RequestPaymentRequest
 import co.nilin.opex.payment.data.RequestPaymentResponse
 import co.nilin.opex.payment.service.PaymentService
@@ -25,6 +26,12 @@ class PaymentController(private val paymentService: PaymentService) {
     @PostMapping("/verify/{id}")
     suspend fun verifyPayment(@PathVariable id: String, @RequestParam status: String) {
         paymentService.verifyInvoice(id, status)
+    }
+
+    @PostMapping("/cancel/{reference}")
+    suspend fun cancel(principal: Principal, @PathVariable reference: String): CancelOrderResponse {
+        val invoice = paymentService.cancel(principal, reference)
+        return CancelOrderResponse(invoice.reference)
     }
 
 }

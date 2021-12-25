@@ -1,6 +1,7 @@
 package co.nilin.opex.payment.dao
 
 import co.nilin.opex.payment.model.Invoice
+import com.opex.payment.core.model.InvoiceStatus
 import org.springframework.data.r2dbc.repository.Query
 import org.springframework.data.repository.reactive.ReactiveCrudRepository
 import org.springframework.stereotype.Repository
@@ -20,4 +21,6 @@ interface InvoiceRepository : ReactiveCrudRepository<Invoice, Long> {
 
     @Query("SELECT * FROM invoice WHERE status = 'Done' AND is_notified = false AND update_date < :time")
     fun findAllDoneButNotNotifiedOlderThan(time: LocalDateTime): Flux<Invoice>
+
+    fun findByUserIdAndStatus(userId: String, status: InvoiceStatus): Flux<Invoice>
 }
