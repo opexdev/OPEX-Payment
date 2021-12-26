@@ -17,7 +17,7 @@ data class Invoice(
     val reference: String = UUID.randomUUID().toString(),
     var gatewayRequestId: String? = null,
     var gatewayStatus: String? = null,
-    var status: InvoiceStatus = InvoiceStatus.New,
+    var status: InvoiceStatus = InvoiceStatus.Open,
     var description: String? = null,
     var cardNumber: String? = null,
     var mobile: String? = null,
