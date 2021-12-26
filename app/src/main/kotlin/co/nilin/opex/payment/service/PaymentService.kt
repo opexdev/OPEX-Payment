@@ -35,7 +35,7 @@ class PaymentService(
     suspend fun createNewInvoice(principal: Principal, request: RequestPaymentRequest): InvoiceAndUrl {
         val gatewayModel = getGateway(request.paymentGatewayName)
         val service = getGatewayService(gatewayModel.name)
-        val userOpenInvoices = invoiceRepository.findByUserIdAndStatus(principal.name, InvoiceStatus.New)
+        val userOpenInvoices = invoiceRepository.findByUserIdAndStatus(principal.name, InvoiceStatus.Open)
             .collectList()
             .awaitFirstOrElse { emptyList() }
 
@@ -77,7 +77,7 @@ class PaymentService(
         if (invoice.status == InvoiceStatus.Done)
             throw AppException(AppError.AlreadyVerified)
 
-        if (invoice.status == InvoiceStatus.New) {
+        if (invoice.status == InvoiceStatus.Open) {
             val response = service.verify(invoice.toInvoiceDTO())
             if (response.status == InvoiceStatus.Undefined)
                 throw AppException(AppError.VerificationFailed)

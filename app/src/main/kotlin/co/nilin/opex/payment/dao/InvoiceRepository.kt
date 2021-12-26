@@ -12,6 +12,8 @@ import java.time.LocalDateTime
 @Repository
 interface InvoiceRepository : ReactiveCrudRepository<Invoice, Long> {
 
+    fun findAllByUserId(userId: String): Flux<Invoice>
+
     fun findByGatewayRequestId(gatewayRequestId: String): Mono<Invoice?>
 
     fun findByReference(reference: String): Mono<Invoice?>

@@ -26,6 +26,7 @@ class SecurityConfig {
         http.csrf().disable()
             .authorizeExchange()
             .pathMatchers("/v1/payment/**").hasAuthority("SCOPE_trust")
+            .pathMatchers("/v1/invoice/**").hasAuthority("SCOPE_trust")
             .anyExchange().authenticated()
             .and()
             .oauth2ResourceServer()
