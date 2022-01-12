@@ -14,12 +14,10 @@ interface InvoiceRepository : ReactiveCrudRepository<Invoice, Long> {
 
     fun findAllByUserId(userId: String): Flux<Invoice>
 
-    fun findByGatewayRequestId(gatewayRequestId: String): Mono<Invoice?>
-
     fun findByReference(reference: String): Mono<Invoice?>
 
-    @Query("SELECT * FROM invoice WHERE status = 'New' AND update_date < :time")
-    fun findAllUnverifiedOlderThan(time: LocalDateTime): Flux<Invoice>
+    @Query("SELECT * FROM invoice WHERE status = 'Open' AND update_date < :time")
+    fun findAllOpenOlderThan(time: LocalDateTime): Flux<Invoice>
 
     @Query("SELECT * FROM invoice WHERE status = 'Done' AND is_notified = false AND update_date < :time")
     fun findAllDoneButNotNotifiedOlderThan(time: LocalDateTime): Flux<Invoice>

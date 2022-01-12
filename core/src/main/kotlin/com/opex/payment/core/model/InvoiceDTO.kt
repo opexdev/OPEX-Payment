@@ -12,7 +12,6 @@ data class InvoiceDTO(
     val createDate: LocalDateTime,
     val updateDate: LocalDateTime,
     val status: InvoiceStatus,
-    val gatewayId: String?,
     val gatewayStatus: String?,
     val description: String?,
     val cardNumber: String?,

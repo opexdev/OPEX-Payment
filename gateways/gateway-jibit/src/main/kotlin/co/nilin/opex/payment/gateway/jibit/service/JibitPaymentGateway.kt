@@ -6,6 +6,7 @@ import com.opex.payment.core.model.InvoiceDTO
 import com.opex.payment.core.model.VerifyInvoiceResponse
 import com.opex.payment.core.spi.PaymentGateway
 import co.nilin.opex.payment.gateway.jibit.proxy.JibitPPGProxy
+import com.opex.payment.core.model.IPGRequestDTO
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
 
@@ -20,11 +21,11 @@ class JibitPaymentGateway(private val proxy: JibitPPGProxy) : PaymentGateway {
         TODO("Not yet implemented")
     }
 
-    override suspend fun verify(invoice: InvoiceDTO): VerifyInvoiceResponse {
+    override suspend fun verify(invoice: InvoiceDTO, request: IPGRequestDTO): VerifyInvoiceResponse {
         TODO("Not yet implemented")
     }
 
-    override suspend fun createRedirectUrl(invoice: InvoiceDTO): String {
+    override suspend fun createRedirectUrl(request: IPGRequestDTO): String {
         TODO("Not yet implemented")
     }
 

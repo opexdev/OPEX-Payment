@@ -2,12 +2,9 @@ package co.nilin.opex.payment.gateway.vandar
 
 import co.nilin.opex.payment.gateway.vandar.data.TxResponse
 import com.opex.payment.core.Gateways
-import com.opex.payment.core.model.CreateInvoiceResponse
-import com.opex.payment.core.model.InvoiceDTO
-import com.opex.payment.core.model.InvoiceStatus
-import com.opex.payment.core.model.VerifyInvoiceResponse
 import com.opex.payment.core.spi.PaymentGateway
 import co.nilin.opex.payment.gateway.vandar.proxy.VandarProxy
+import com.opex.payment.core.model.*
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.env.Environment
@@ -40,11 +37,11 @@ class VandarPaymentGateway(private val proxy: VandarProxy, private val env: Envi
         return CreateInvoiceResponse(response.token)
     }
 
-    override suspend fun verify(invoice: InvoiceDTO): VerifyInvoiceResponse {
-        val tx = proxy.fetchTxData(apiKey, invoice.gatewayId!!)
+    override suspend fun verify(invoice: InvoiceDTO, request: IPGRequestDTO): VerifyInvoiceResponse {
+        val tx = proxy.fetchTxData(apiKey, request.requestId)
         validateTransaction(invoice, tx)
 
-        val response = proxy.verifyTransaction(apiKey, invoice.gatewayId!!)
+        val response = proxy.verifyTransaction(apiKey, request.requestId)
         val status = when (response.status) {
             0 -> InvoiceStatus.Undefined
             1 -> InvoiceStatus.Done
@@ -60,7 +57,7 @@ class VandarPaymentGateway(private val proxy: VandarProxy, private val env: Envi
             throw IllegalStateException("transaction data invalid")
     }
 
-    override suspend fun createRedirectUrl(invoice: InvoiceDTO): String {
-        return "$redirectUrl/${invoice.gatewayId}"
+    override suspend fun createRedirectUrl(request: IPGRequestDTO): String {
+        return "$redirectUrl/${request.requestId}"
     }
 }

@@ -12,7 +12,6 @@ data class InvoiceResponse(
     val callbackUrl: String,
     val currency: Currency,
     val reference: String,
-    val id: String?,
     val status: InvoiceStatus?,
     val description: String?,
     val createDate: LocalDateTime
