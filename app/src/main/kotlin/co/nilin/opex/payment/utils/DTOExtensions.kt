@@ -1,9 +1,11 @@
 package co.nilin.opex.payment.utils
 
+import co.nilin.opex.payment.model.IPGRequest
 import co.nilin.opex.payment.model.Invoice
+import com.opex.payment.core.model.IPGRequestDTO
 import com.opex.payment.core.model.InvoiceDTO
 
-fun Invoice.toInvoiceDTO() = InvoiceDTO(
+fun Invoice.asInvoiceDTO() = InvoiceDTO(
     id,
     userId,
     reference,
@@ -13,11 +15,19 @@ fun Invoice.toInvoiceDTO() = InvoiceDTO(
     createDate,
     updateDate,
     status,
-    gatewayRequestId,
     gatewayStatus,
     description,
     cardNumber,
     mobile,
     nationalCode,
     isNotified
+)
+
+fun IPGRequest.asIPGRequestDTO() = IPGRequestDTO(
+    id!!,
+    invoiceId,
+    requestId,
+    isExpired,
+    isPaid,
+    createDate
 )

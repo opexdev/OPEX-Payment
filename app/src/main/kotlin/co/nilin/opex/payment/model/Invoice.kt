@@ -15,7 +15,6 @@ data class Invoice(
     val currency: Currency,
     val paymentGatewayId: Long,
     val reference: String = UUID.randomUUID().toString(),
-    var gatewayRequestId: String? = null,
     var gatewayStatus: String? = null,
     var status: InvoiceStatus = InvoiceStatus.Open,
     var description: String? = null,
@@ -25,5 +24,7 @@ data class Invoice(
     var isNotified: Boolean = false,
     val createDate: LocalDateTime = LocalDateTime.now(),
     var updateDate: LocalDateTime = LocalDateTime.now(),
-    @Id var id: Long? = null
+    var lastPayAttempt: LocalDateTime? = null,
+    @Id
+    var id: Long? = null
 )

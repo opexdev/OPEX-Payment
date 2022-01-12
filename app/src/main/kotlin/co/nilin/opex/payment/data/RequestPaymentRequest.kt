@@ -6,7 +6,6 @@ data class RequestPaymentRequest(
     val amount: Double,
     val callbackUrl:String,
     val currency: Currency,
-    val paymentGatewayName: String?,
     val description: String?,
     val mobile: String?,
     val cardNumber: String?,

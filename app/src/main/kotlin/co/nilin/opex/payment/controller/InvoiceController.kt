@@ -34,7 +34,6 @@ class InvoiceController(private val invoiceService: InvoiceService) {
         callbackUrl,
         currency,
         reference,
-        gatewayRequestId,
         status,
         description,
         createDate
