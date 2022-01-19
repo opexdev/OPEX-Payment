@@ -11,6 +11,9 @@ logging:
     co.nilin: DEBUG
     reactor.netty.http.client: DEBUG
 app:
+  cors:
+    allowed-hosts: https://opex.dev, http://localhost:3000
+    allowed-patterns: http://192.168.*
   opex:
     wallet-url: http://wallet:8091
     cert-url: http://auth:8083/auth/realms/opex/protocol/openid-connect/certs

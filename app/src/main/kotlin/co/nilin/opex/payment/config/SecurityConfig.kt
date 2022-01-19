@@ -2,18 +2,12 @@ package co.nilin.opex.payment.config
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
-import org.springframework.core.io.ClassPathResource
-import org.springframework.core.io.Resource
+import org.springframework.http.HttpMethod
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity
 import org.springframework.security.config.web.server.ServerHttpSecurity
 import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder
 import org.springframework.security.web.server.SecurityWebFilterChain
-import org.springframework.util.Base64Utils
-import org.springframework.util.FileCopyUtils
-import java.security.KeyFactory
-import java.security.interfaces.RSAPublicKey
-import java.security.spec.X509EncodedKeySpec
 
 @EnableWebFluxSecurity
 class SecurityConfig {
@@ -24,10 +18,12 @@ class SecurityConfig {
     @Bean
     fun springSecurityFilterChain(http: ServerHttpSecurity): SecurityWebFilterChain? {
         http.csrf().disable()
+            .cors().and()
             .authorizeExchange()
             .pathMatchers("/v1/payment/pay/**").permitAll()
             .pathMatchers("/v1/payment/**").hasAuthority("SCOPE_trust")
             .pathMatchers("/v1/invoice/**").hasAuthority("SCOPE_trust")
+            .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
             .anyExchange().authenticated()
             .and()
             .oauth2ResourceServer()
