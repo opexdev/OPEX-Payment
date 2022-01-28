@@ -21,7 +21,7 @@ class SecurityConfig {
             .cors().and()
             .authorizeExchange()
             .pathMatchers("/v1/payment/pay/**").permitAll()
-            .pathMatchers("/v1/payment/**").hasAuthority("SCOPE_trust")
+            .pathMatchers("/v1/payment/**").hasAnyAuthority("SCOPE_ipg", "SCOPE_trust")
             .pathMatchers("/v1/invoice/**").hasAuthority("SCOPE_trust")
             .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
             .anyExchange().authenticated()
