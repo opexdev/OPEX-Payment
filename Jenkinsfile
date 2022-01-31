@@ -15,11 +15,11 @@ pipeline {
         stage('Deliver') {
             environment {
                 DATA = '/var/opex/payment-gateway'
+                COMPOSE_PROJECT_NAME = 'payment-gateway'
+                DEFAULT_NETWORK_NAME = 'demo-opex'
             }
             steps {
-                dir(".") {
-                    sh 'docker-compose up -d --build'
-                }
+                sh 'docker-compose up -d --build --remove-orphans'
             }
         }
     }
