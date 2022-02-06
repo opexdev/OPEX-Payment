@@ -14,9 +14,9 @@ pipeline {
         }
         stage('Deliver') {
             environment {
-                DATA = '/var/opex/demo-payment-gateway'
-                COMPOSE_PROJECT_NAME = 'demo-payment-gateway'
-                DEFAULT_NETWORK_NAME = 'demo-opex'
+                DATA = '/var/opex/dev-payment-gateway'
+                COMPOSE_PROJECT_NAME = 'dev-payment-gateway'
+                DEFAULT_NETWORK_NAME = 'dev-opex'
             }
             steps {
                 sh 'docker-compose up -d --build --remove-orphans'
