@@ -14,4 +14,4 @@ jobs:
           url: ${{ secrets.JENKINS_URL }}
           user: ${{ secrets.JENKINS_USER }}
           token: ${{ secrets.JENKINS_TOKEN }}
-          job: "opex-payment-gateway-dev"
+          job: "opex-ipg-dev"
