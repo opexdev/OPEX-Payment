@@ -1,7 +1,7 @@
-server.port: 9995
+server.port: 8080
 spring:
   r2dbc:
-    url: r2dbc:postgresql://localhost:5455/opex_payment
+    url: r2dbc:postgresql://${DB_IP_PORT:localhost}/opex_payment
     username: opex
     password: hiopex
   main:
@@ -11,14 +11,12 @@ logging:
     co.nilin: DEBUG
     reactor.netty.http.client: DEBUG
 app:
-  cors:
-    allowed-hosts: https://opex.dev, http://localhost:3000
-    allowed-patterns: http://192.168.*
   opex:
-    wallet-url: http://wallet:8091
-    cert-url: http://auth:8083/auth/realms/opex/protocol/openid-connect/certs
+    wallet-url: http://wallet:8080
+    cert-url: http://auth:8080/auth/realms/opex/protocol/openid-connect/certs
   jibit-url: https://api.jibit.ir/ppg/v2
   vandar:
+    api-key: ${VANDAR_API_KEY}
     ipg-url: https://ipg.vandar.io/api/v3
     redirect-url: https://ipg.vandar.io/v3
     data-url: https://vandar.io/api/ipg
