@@ -17,6 +17,7 @@ pipeline {
                 DATA = '/var/opex/dev-payment-gateway'
                 COMPOSE_PROJECT_NAME = 'dev-payment-gateway'
                 DEFAULT_NETWORK_NAME = 'dev-opex'
+                VANDAR_API_KEY = credentials("vandar-api-key-dev")
             }
             steps {
                 sh 'docker-compose up -d --build --remove-orphans'
