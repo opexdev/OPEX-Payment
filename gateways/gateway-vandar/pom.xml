@@ -5,7 +5,7 @@
 
 	<parent>
 		<groupId>co.nilin.opex</groupId>
-		<artifactId>payment</artifactId>
+		<artifactId>OPEX-Payment</artifactId>
 		<version>1.0-SNAPSHOT</version>
 		<relativePath>../../pom.xml</relativePath>
 	</parent>

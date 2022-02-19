@@ -1,10 +1,9 @@
 version: '3.8'
-
 services:
   postgres-payment:
     image: "postgres"
     ports:
-      - 127.0.0.1:5455:5432
+      - "5455:5432"
     environment:
       - POSTGRES_USER=opex
       - POSTGRES_PASSWORD=hiopex
@@ -12,33 +11,23 @@ services:
     volumes:
       - $DATA/opex-payment-data:/var/lib/postgresql/data/
     networks:
-      - opex-payment
-
+      - default
   payment:
-    container_name: payment
     build:
       context: ./app
-      dockerfile: Dockerfile
-    ports:
-      - 0.0.0.0:9995:9995
-      - 127.0.0.1:1070:1044
     environment:
       - JAVA_OPTS=-Xmx256m -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=1044
       - SPRING_PROFILES_ACTIVE=docker
       - DB_IP_PORT=postgres-payment
       - VANDAR_API_KEY=${VANDAR_API_KEY}
     networks:
-      - opex-payment
+      - default
     depends_on:
       - postgres-payment
     deploy:
       restart_policy:
         condition: on-failure
-    env_file:
-      - .env
-
 networks:
-  opex-payment:
-    external:
-      name: demo_opex
+  default:
+    name: ${DEFAULT_NETWORK_NAME:-opex}
     driver: bridge
