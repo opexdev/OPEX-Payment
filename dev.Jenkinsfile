@@ -6,20 +6,23 @@ pipeline {
             steps {
                 setBuildStatus("?", "PENDING")
                 withMaven(
-                        maven: 'maven-latest'
+                        maven: 'maven-3.6.3'
                 ) {
-                    sh 'mvn -B  clean install'
+                    sh 'mvn -B clean install'
                 }
             }
         }
         stage('Deliver') {
             environment {
-                DATA = '/var/opex/payment-gateway'
+                DATA = '/var/opex/dev-payment-gateway'
+                COMPOSE_PROJECT_NAME = 'dev-payment-gateway'
+                DEFAULT_NETWORK_NAME = 'dev-opex'
+                VANDAR_API_KEY = credentials("vandar-api-key-dev")
             }
             steps {
-                dir(".") {
-                    sh 'docker-compose up -d --build'
-                }
+                sh 'docker-compose up -d --build --remove-orphans'
+                sh 'docker image prune -f'
+                sh 'docker network prune -f'
             }
         }
     }
