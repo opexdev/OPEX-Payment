@@ -2,8 +2,6 @@ version: '3.8'
 services:
   postgres-payment:
     image: "postgres"
-    ports:
-      - "5455:5432"
     environment:
       - POSTGRES_USER=opex
       - POSTGRES_PASSWORD=hiopex
