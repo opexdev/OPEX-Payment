@@ -37,7 +37,13 @@ class PaymentService(
 ) {
 
     @Transactional
-    suspend fun createNewInvoice(principal: Principal, request: RequestPaymentRequest): Invoice {
+    suspend fun createNewInvoice(
+        principal: Principal,
+        request: RequestPaymentRequest,
+        mobile: String?,
+        cardNumber: String?,
+        nationalCode: String?,
+    ): Invoice {
         val gatewayModel = selectGateway()
         val userOpenInvoices = invoiceRepository.findByUserIdAndStatus(principal.name, InvoiceStatus.Open)
             .collectList()
