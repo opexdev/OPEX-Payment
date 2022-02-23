@@ -4,8 +4,8 @@ spring:
     name: opex-payment
   r2dbc:
     url: r2dbc:postgresql://${DB_IP_PORT:localhost}/opex_payment
-    username: opex
-    password: hiopex
+    username: ${dbusername:opex}
+    password: ${dbpassword:hiopex}
   main:
     allow-bean-definition-overriding: true
   cloud:
