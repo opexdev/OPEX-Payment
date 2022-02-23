@@ -22,6 +22,7 @@ pipeline {
                 DB_PASS = credentials("db-secret")
                 DB_BACKUP_USER = 'opex_backup'
                 DB_BACKUP_PASS = credentials("db-backup-secret")
+                BACKEND_USER = credentials("v-backend-secret")
             }
             steps {
                 sh 'docker-compose up -d --build --remove-orphans'

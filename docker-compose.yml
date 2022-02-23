@@ -20,6 +20,7 @@ services:
       - JAVA_OPTS=-Xmx256m -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=1044
       - SPRING_PROFILES_ACTIVE=docker
       - DB_IP_PORT=postgres-payment
+      - BACKEND_USER=${BACKEND_USER}
       - VAULT_HOST=vault
       - CONSUL_HOST=consul
     networks:
