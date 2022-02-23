@@ -18,6 +18,10 @@ pipeline {
                 COMPOSE_PROJECT_NAME = 'dev-payment-gateway'
                 DEFAULT_NETWORK_NAME = 'dev-opex'
                 VANDAR_API_KEY = credentials("vandar-api-key-dev")
+                DB_USER = 'opex'
+                DB_PASS = credentials("db-secret-dev")
+                DB_BACKUP_USER = 'opex_backup'
+                DB_BACKUP_PASS = credentials("db-backup-secret-dev")
             }
             steps {
                 sh 'docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build --remove-orphans'
