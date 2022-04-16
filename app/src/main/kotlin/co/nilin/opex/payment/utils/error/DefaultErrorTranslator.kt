@@ -1,5 +1,6 @@
 package co.nilin.opex.payment.utils.error
 
+import com.opex.payment.core.error.AppException
 import org.springframework.stereotype.Component
 
 @Component

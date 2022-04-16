@@ -1,6 +1,6 @@
 package co.nilin.opex.payment.gateway.vandar.data
 
-abstract class BaseResponse(
+open class BaseResponse(
     val status: Int = -1,
     val errors: List<String> = emptyList()
 )

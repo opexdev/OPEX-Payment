@@ -9,8 +9,8 @@ import co.nilin.opex.payment.model.Invoice
 import co.nilin.opex.payment.model.PaymentGatewayModel
 import co.nilin.opex.payment.utils.Interval
 import co.nilin.opex.payment.utils.asIPGRequestDTO
-import co.nilin.opex.payment.utils.error.AppError
-import co.nilin.opex.payment.utils.error.AppException
+import com.opex.payment.core.error.AppError
+import com.opex.payment.core.error.AppException
 import co.nilin.opex.payment.utils.asInvoiceDTO
 import co.nilin.opex.payment.utils.equalsAny
 import com.opex.payment.core.Gateways
@@ -171,6 +171,10 @@ class PaymentService(
 
     private fun getGatewayService(name: String): PaymentGateway {
         return beanFactory.getBean<PaymentGateway>(name)
+    }
+
+    private fun redirectTo(){
+
     }
 
 }

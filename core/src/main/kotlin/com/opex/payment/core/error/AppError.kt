@@ -1,4 +1,4 @@
-package co.nilin.opex.payment.utils.error
+package com.opex.payment.core.error
 
 import org.springframework.http.HttpStatus
 
@@ -17,7 +17,11 @@ enum class AppError(val code: Int, val message: String?, val status: HttpStatus)
     VerificationNotAllowed(13002, "Verification is not allowed for this payment", HttpStatus.FORBIDDEN),
     PaymentNotAllowed(13003, "Payment is not allowed for this payment", HttpStatus.FORBIDDEN),
     OpenPayments(13004, "Found open payments for user. Finish or cancel open payments", HttpStatus.BAD_REQUEST),
-    PaymentLocked(13005, "Payment is locked for this invoice. Please try again later", HttpStatus.BAD_REQUEST);
+    PaymentLocked(13005, "Payment is locked for this invoice. Please try again later", HttpStatus.BAD_REQUEST),
+    InvalidPaymentParams(13006, "Payment parameters are invalid", HttpStatus.BAD_REQUEST),
+    UnknownGatewayError(13007, "Unknown error for payment gateway", HttpStatus.INTERNAL_SERVER_ERROR),
+
+    ;
 
     companion object {
         fun findByCode(code: Int?): AppError? {

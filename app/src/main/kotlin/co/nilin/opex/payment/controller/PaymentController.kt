@@ -4,8 +4,8 @@ import co.nilin.opex.payment.data.CancelOrderResponse
 import co.nilin.opex.payment.data.RequestPaymentRequest
 import co.nilin.opex.payment.data.RequestPaymentResponse
 import co.nilin.opex.payment.service.PaymentService
-import co.nilin.opex.payment.utils.error.AppError
-import co.nilin.opex.payment.utils.error.AppException
+import com.opex.payment.core.error.AppError
+import com.opex.payment.core.error.AppException
 import co.nilin.opex.payment.utils.jwtAuthentication
 import co.nilin.opex.payment.utils.redirectTo
 import co.nilin.opex.payment.utils.tryOrNull

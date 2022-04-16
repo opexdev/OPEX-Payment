@@ -1,6 +1,8 @@
 package co.nilin.opex.payment.config
 
 import co.nilin.opex.payment.utils.logger.CustomLogger
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.client.reactive.ReactorClientHttpConnector
@@ -24,6 +26,11 @@ class WebClientConfig {
                 )
             )
             .build()
+    }
+
+    @Bean
+    fun mapper(): ObjectMapper {
+        return ObjectMapper().registerKotlinModule()
     }
 
 }

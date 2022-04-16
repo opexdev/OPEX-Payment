@@ -1,4 +1,4 @@
-package co.nilin.opex.payment.utils.error
+package com.opex.payment.core.error
 
 import org.springframework.http.HttpStatus
 
