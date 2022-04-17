@@ -28,9 +28,4 @@ class WebClientConfig {
             .build()
     }
 
-    @Bean
-    fun mapper(): ObjectMapper {
-        return ObjectMapper().registerKotlinModule()
-    }
-
 }
