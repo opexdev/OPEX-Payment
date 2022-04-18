@@ -17,6 +17,8 @@ spring:
         instance-id: ${spring.application.name}:${server.port}
         healthCheckInterval: 20s
         prefer-ip-address: true
+      config:
+        enabled: false
     vault:
       host: ${VAULT_HOST}
       port: 8200
@@ -38,7 +40,7 @@ logging:
     reactor.netty.http.client: DEBUG
 app:
   opex:
-    wallet-url: http://wallet:8080
+    wallet-url: lb://opex-wallet
     cert-url: http://auth:8080/auth/realms/opex/protocol/openid-connect/certs
   jibit-url: https://api.jibit.ir/ppg/v2
   vandar:

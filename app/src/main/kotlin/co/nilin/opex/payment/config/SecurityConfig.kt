@@ -19,6 +19,7 @@ class SecurityConfig {
     fun springSecurityFilterChain(http: ServerHttpSecurity): SecurityWebFilterChain? {
         http.csrf().disable()
             .authorizeExchange()
+            .pathMatchers("/actuator/health").permitAll()
             .pathMatchers("/v1/payment/pay/**").permitAll()
             .pathMatchers("/v1/payment/**").hasAnyAuthority("SCOPE_ipg", "SCOPE_trust")
             .pathMatchers("/v1/invoice/**").hasAuthority("SCOPE_trust")
