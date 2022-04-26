@@ -9,16 +9,17 @@ import co.nilin.opex.payment.model.Invoice
 import co.nilin.opex.payment.model.PaymentGatewayModel
 import co.nilin.opex.payment.utils.Interval
 import co.nilin.opex.payment.utils.asIPGRequestDTO
-import co.nilin.opex.payment.utils.error.AppError
-import co.nilin.opex.payment.utils.error.AppException
 import co.nilin.opex.payment.utils.asInvoiceDTO
 import co.nilin.opex.payment.utils.equalsAny
 import com.opex.payment.core.Gateways
+import com.opex.payment.core.error.AppError
+import com.opex.payment.core.error.AppException
 import com.opex.payment.core.model.InvoiceStatus
 import com.opex.payment.core.spi.PaymentGateway
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrElse
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.BeanFactory
 import org.springframework.beans.factory.getBean
 import org.springframework.stereotype.Service
@@ -35,6 +36,8 @@ class PaymentService(
     private val gatewayRepository: PaymentGatewayRepository,
     private val ipgRequestRepository: IPGRequestRepository,
 ) {
+
+    private val logger = LoggerFactory.getLogger(PaymentService::class.java)
 
     @Transactional
     suspend fun createNewInvoice(
@@ -74,12 +77,20 @@ class PaymentService(
      */
     @Transactional
     suspend fun pay(reference: String): String {
+        //TODO Where to redirect the error when invoice is null?
         val invoice = invoiceRepository.findByReference(reference)
             .awaitFirstOrNull() ?: throw AppException(AppError.NotFound, "Payment not found")
 
         val payInterval = Interval(2, TimeUnit.MINUTES).getLocalDateTime()
-        if (invoice.lastPayAttempt != null && invoice.lastPayAttempt!! > payInterval)
-            throw AppException(AppError.PaymentLocked)
+        if (invoice.lastPayAttempt != null && invoice.lastPayAttempt!! > payInterval) {
+            logger.error("pay(): Invoice ${invoice.reference} locked")
+            return createErrorRedirect(AppException(AppError.PaymentLocked), invoice)
+        }
+
+        if (invoice.status != InvoiceStatus.Open) {
+            logger.error("pay(): Invoice ${invoice.reference} not allowed")
+            return createErrorRedirect(AppException(AppError.PaymentNotAllowed), invoice)
+        }
 
         invoice.lastPayAttempt = LocalDateTime.now()
         invoice.updateDate = LocalDateTime.now()
@@ -87,6 +98,7 @@ class PaymentService(
 
         val previousRequest = ipgRequestRepository.findOpenRequest(invoice.id!!).awaitFirstOrNull()
         if (previousRequest != null) {
+            logger.info("Expiring previous request for invoice ${invoice.reference}")
             previousRequest.isExpired = true
             ipgRequestRepository.save(previousRequest).awaitFirst()
         }
@@ -94,7 +106,12 @@ class PaymentService(
         //TODO select gateway here
         val gatewayModel = gatewayRepository.findById(invoice.paymentGatewayId).awaitFirst()
         val service = getGatewayService(gatewayModel.name)
-        val response = service.create(invoice.asInvoiceDTO())
+        val response = try {
+            service.create(invoice.asInvoiceDTO())
+        } catch (ex: AppException) {
+            logger.error("Error creating ipg request for invoice ${invoice.reference}", ex)
+            return createErrorRedirect(ex, invoice)
+        }
 
         val ipgRequest = ipgRequestRepository.save(
             IPGRequest(
@@ -137,7 +154,12 @@ class PaymentService(
         }
 
         if (invoice.status == InvoiceStatus.Done && !invoice.isNotified) {
-            invoice.isNotified = opexBridgeService.notifyDeposit(invoice)
+            invoice.isNotified = try {
+                opexBridgeService.notifyDeposit(invoice)
+            } catch (e: Exception) {
+                logger.error("Failed to notify the core system for invoice ${invoice.reference}", e)
+                false
+            }
             invoice.updateDate = LocalDateTime.now()
             invoice = invoiceRepository.save(invoice).awaitFirst()
         }
@@ -171,6 +193,11 @@ class PaymentService(
 
     private fun getGatewayService(name: String): PaymentGateway {
         return beanFactory.getBean<PaymentGateway>(name)
+    }
+
+    private fun createErrorRedirect(ex: AppException, invoice: Invoice): String {
+        val url = invoice.callbackUrl
+        return "$url?payment_status=FAILED&status_code=${ex.status.value()}&error_code=${ex.error.code}&error=${ex.error.name}&message=${ex.message}"
     }
 
 }

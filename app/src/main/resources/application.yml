@@ -1,22 +1,50 @@
 server.port: 8080
 spring:
+  application:
+    name: opex-payment
   r2dbc:
     url: r2dbc:postgresql://${DB_IP_PORT:localhost}/opex_payment
-    username: opex
-    password: hiopex
+    username: ${dbusername:opex}
+    password: ${dbpassword:hiopex}
   main:
     allow-bean-definition-overriding: true
+  cloud:
+    consul:
+      host: ${CONSUL_HOST:localhost}
+      port: 8500
+      discovery:
+        #healthCheckPath: ${management.context-path}/health
+        instance-id: ${spring.application.name}:${server.port}
+        healthCheckInterval: 20s
+        prefer-ip-address: true
+      config:
+        enabled: false
+    vault:
+      host: ${VAULT_HOST}
+      port: 8200
+      scheme: http
+      authentication: APPID
+      app-id:
+        user-id: co.nilin.opex.util.vault.VaultUserIdMechanism
+      fail-fast: true
+      kv:
+        enabled: true
+        backend: secret
+        profile-separator: '/'
+        application-name: ${spring.application.name}
+  config:
+    import: vault://secret/${spring.application.name}
 logging:
   level:
     co.nilin: DEBUG
     reactor.netty.http.client: DEBUG
 app:
   opex:
-    wallet-url: http://wallet:8080
+    wallet-url: lb://opex-wallet
     cert-url: http://auth:8080/auth/realms/opex/protocol/openid-connect/certs
   jibit-url: https://api.jibit.ir/ppg/v2
   vandar:
-    api-key: ${VANDAR_API_KEY}
+    api-key: ${vandar_api_key}
     ipg-url: https://ipg.vandar.io/api/v3
     redirect-url: https://ipg.vandar.io/v3
     data-url: https://vandar.io/api/ipg

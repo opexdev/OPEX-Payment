@@ -2,6 +2,8 @@ package co.nilin.opex.payment.utils.error
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.opex.payment.core.error.AppError
+import com.opex.payment.core.error.AppException
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity

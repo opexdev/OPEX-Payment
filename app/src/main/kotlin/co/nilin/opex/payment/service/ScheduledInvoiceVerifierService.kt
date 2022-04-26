@@ -9,10 +9,12 @@ import co.nilin.opex.payment.utils.asIPGRequestDTO
 import co.nilin.opex.payment.utils.asInvoiceDTO
 import com.opex.payment.core.model.InvoiceStatus
 import com.opex.payment.core.spi.PaymentGateway
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrElse
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.BeanFactory
 import org.springframework.beans.factory.getBean
@@ -33,9 +35,6 @@ class ScheduledInvoiceVerifierService(
 ) {
 
     private val executor = Executors.newFixedThreadPool(2)
-    private val verifyTime = Interval(2, TimeUnit.MINUTES).getLocalDateTime()
-    private val notifyTime = Interval(1, TimeUnit.MINUTES).getLocalDateTime()
-    private val expiryTime = Interval(20, TimeUnit.MINUTES).getLocalDateTime()
     private val logger = LoggerFactory.getLogger(ScheduledInvoiceVerifierService::class.java)
 
     @Scheduled(fixedDelay = 30000)
@@ -44,6 +43,8 @@ class ScheduledInvoiceVerifierService(
     }
 
     suspend fun verifyInvoices() {
+        val verifyTime = Interval(2, TimeUnit.MINUTES).getLocalDateTime()
+        val notifyTime = Interval(1, TimeUnit.MINUTES).getLocalDateTime()
         invoiceRepository.findAllOpenOlderThan(verifyTime)
             .collectList()
             .awaitFirstOrElse { emptyList() }
@@ -64,6 +65,7 @@ class ScheduledInvoiceVerifierService(
 
     @Transactional
     suspend fun verify(invoice: Invoice) {
+        logger.info("Verifying invoice ${invoice.reference}")
         val ipgRequest = ipgRequestRepository.findOpenRequest(invoice.id!!).awaitFirstOrNull() ?: return
         val gatewayModel = gatewayRepository.findById(invoice.paymentGatewayId).awaitFirst()
         val service = getGatewayService(gatewayModel.name)
@@ -85,13 +87,21 @@ class ScheduledInvoiceVerifierService(
 
     suspend fun notify(invoice: Invoice) {
         delay(2000)
-        invoice.isNotified = opexBridgeService.notifyDeposit(invoice)
+        logger.info("Notifying invoice ${invoice.reference}")
+        invoice.isNotified = try {
+            opexBridgeService.notifyDeposit(invoice)
+        } catch (e: Exception) {
+            logger.error("Failed to notify the core system for invoice ${invoice.reference}", e)
+            false
+        }
         invoiceRepository.save(invoice).awaitFirst()
     }
 
     suspend fun checkExpiry(invoice: Invoice) {
+        val expiryTime = Interval(20, TimeUnit.MINUTES).getLocalDateTime()
         if (invoice.createDate > expiryTime) return
 
+        logger.info("Invoice ${invoice.reference} is expired")
         with(invoice) {
             status = InvoiceStatus.Expired
             updateDate = LocalDateTime.now()
