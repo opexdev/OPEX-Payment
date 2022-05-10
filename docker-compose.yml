@@ -5,7 +5,7 @@ services:
     volumes:
       - vault-data:/vault/file
     environment:
-      - VAULT_ADDRESS=http://0.0.0.0:8200
+      - VAULT_ADDR=http://0.0.0.0:8200
       - PANEL_PASS=${PANEL_PASS}
       - BACKEND_USER=${BACKEND_USER}
       - SMTP_PASS=${SMTP_PASS}
@@ -17,8 +17,6 @@ services:
       - KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD:-hiopex}
       - OPEX_ADMIN_KEYCLOAK_CLIENT_SECRET=${OPEX_ADMIN_KEYCLOAK_CLIENT_SECRET}
       - VANDAR_API_KEY=$VANDAR_API_KEY
-    healthcheck:
-      retries: 5
     cap_add:
       - IPC_LOCK
   vault-ui:
@@ -51,9 +49,9 @@ services:
       - default
   payment:
     image: ghcr.io/opexdev/payment
+    build: app
     environment:
       - JAVA_OPTS=-Xmx256m -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
-      - SPRING_PROFILES_ACTIVE=docker
       - DB_IP_PORT=postgres-payment
       - BACKEND_USER=${BACKEND_USER}
       - VAULT_HOST=vault
