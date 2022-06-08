@@ -3,7 +3,7 @@ spring:
   application:
     name: opex-payment
   r2dbc:
-    url: r2dbc:postgresql://${DB_IP_PORT:localhost}/opex_payment
+    url: r2dbc:postgresql://${DB_IP_PORT:localhost}/opex
     username: ${dbusername:opex}
     password: ${dbpassword:hiopex}
   main:
