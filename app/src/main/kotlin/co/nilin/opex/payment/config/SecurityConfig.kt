@@ -1,5 +1,6 @@
 package co.nilin.opex.payment.config
 
+import co.nilin.opex.payment.utils.hasRoleWithAnyAuthorities
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.http.HttpMethod
@@ -21,8 +22,8 @@ class SecurityConfig {
             .authorizeExchange()
             .pathMatchers("/actuator/health").permitAll()
             .pathMatchers("/v1/payment/pay/**").permitAll()
-            .pathMatchers("/v1/payment/**").hasAnyAuthority("SCOPE_ipg", "SCOPE_trust")
-            .pathMatchers("/v1/invoice/**").hasAuthority("SCOPE_trust")
+            .pathMatchers("/v1/payment/**").hasRoleWithAnyAuthorities("user_kyc", "SCOPE_trust", "SCOPE_ipg")
+            .pathMatchers("/v1/invoice/**").hasRoleWithAnyAuthorities("user_kyc", "SCOPE_trust")
             .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
             .anyExchange().authenticated()
             .and()
