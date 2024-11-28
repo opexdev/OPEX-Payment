@@ -48,12 +48,12 @@ class PaymentService(
         nationalCode: String?,
     ): Invoice {
         val gatewayModel = selectGateway()
-        val userOpenInvoices = invoiceRepository.findByUserIdAndStatus(principal.name, InvoiceStatus.Open)
-            .collectList()
-            .awaitFirstOrElse { emptyList() }
-
-        if (userOpenInvoices.isNotEmpty())
-            throw AppException(AppError.OpenPayments)
+//        val userOpenInvoices = invoiceRepository.findByUserIdAndStatus(principal.name, InvoiceStatus.Open)
+//            .collectList()
+//            .awaitFirstOrElse { emptyList() }
+//
+//        if (userOpenInvoices.isNotEmpty())
+//            throw AppException(AppError.OpenPayments)
 
         val invoice = with(request) {
             Invoice(
