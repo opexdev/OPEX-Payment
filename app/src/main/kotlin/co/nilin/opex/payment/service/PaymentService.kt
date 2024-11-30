@@ -11,13 +11,11 @@ import co.nilin.opex.payment.utils.Interval
 import co.nilin.opex.payment.utils.asIPGRequestDTO
 import co.nilin.opex.payment.utils.asInvoiceDTO
 import co.nilin.opex.payment.utils.equalsAny
-import com.opex.payment.core.Gateways
 import com.opex.payment.core.error.AppError
 import com.opex.payment.core.error.AppException
 import com.opex.payment.core.model.InvoiceStatus
 import com.opex.payment.core.spi.PaymentGateway
 import kotlinx.coroutines.reactive.awaitFirst
-import kotlinx.coroutines.reactive.awaitFirstOrElse
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.BeanFactory
@@ -47,7 +45,8 @@ class PaymentService(
         cardNumber: String?,
         nationalCode: String?,
     ): Invoice {
-        val gatewayModel = selectGateway()
+        //todo change in gateway selection
+        val gatewayModel = selectGateway(name = null)
 //        val userOpenInvoices = invoiceRepository.findByUserIdAndStatus(principal.name, InvoiceStatus.Open)
 //            .collectList()
 //            .awaitFirstOrElse { emptyList() }
@@ -181,14 +180,13 @@ class PaymentService(
         return invoiceRepository.save(invoice).awaitFirst()
     }
 
-    private suspend fun selectGateway(name: String = Gateways.Vandar): PaymentGatewayModel {
-        val gateway = gatewayRepository.findByName(name)
-            .awaitFirstOrNull() ?: throw AppException(AppError.NotFound, "Gateway not found")
-
-        if (!gateway.isEnabled)
+    private suspend fun selectGateway(name: String?): PaymentGatewayModel {
+        val gateway = name?.let { gatewayRepository.findByName(name)?.awaitFirstOrNull() }
+            ?: gatewayRepository.findAll()?.awaitFirstOrNull()
+        if (gateway?.isEnabled == true)
+            return gateway
+        else
             throw AppException(AppError.BadRequest, "Gateway is disabled")
-
-        return gateway
     }
 
     private fun getGatewayService(name: String): PaymentGateway {

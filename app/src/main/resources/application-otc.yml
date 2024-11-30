@@ -41,10 +41,16 @@ logging:
 app:
   opex:
     wallet-url: lb://opex-wallet
-    cert-url: http://auth:8080/auth/realms/opex/protocol/openid-connect/certs
+    cert-url: ${auth_jwk_endpoint}
+    client-id: ${client_id}
+    client-secret: ${client_secret}
   jibit-url: https://api.jibit.ir/ppg/v2
   vandar:
     api-key: ${vandar_api_key}
     ipg-url: https://ipg.vandar.io/api/v3
     redirect-url: https://ipg.vandar.io/v3
     data-url: https://vandar.io/api/ipg
+  zarinpal:
+    api-key: ${zarinpal_api_key}
+    ipg-url: https://payment.zarinpal.com/pg/v4/payment
+    redirect-url: https://payment.zarinpal.com/pg/StartPay

@@ -24,6 +24,7 @@
         <module>core</module>
         <module>gateways/gateway-vandar</module>
         <module>gateways/gateway-jibit</module>
+        <module>gateways/gateway-zarinpal</module>
     </modules>
 
     <dependencyManagement>

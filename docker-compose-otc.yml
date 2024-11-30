@@ -14,34 +14,13 @@ x-postgres-db: &postgres-db
 
 version: '3.8'
 services:
-  vault:
-    image: ghcr.io/opexdev/vault-opex
-    volumes:
-      - vault-data:/vault/file
-    environment:
-      - VAULT_ADDR=http://0.0.0.0:8200
-      - PANEL_PASS=${PANEL_PASS}
-      - BACKEND_USER=${BACKEND_USER}
-      - DB_USER=${DB_USER:-opex}
-      - DB_PASS=${DB_PASS:-hiopex}
-      - DB_READ_ONLY_USER=${DB_READ_ONLY_USER:-opex_reader}
-      - DB_READ_ONLY_PASS=${DB_READ_ONLY_PASS:-hiopex}
-      - VANDAR_API_KEY=$VANDAR_API_KEY
-    cap_add:
-      - IPC_LOCK
-  vault-ui:
-    image: djenriquez/vault-ui
-    environment:
-      - VAULT_URL_DEFAULT=http://vault:8200
-      - VAULT_AUTH_DEFAULT=USERNAMEPASSWORD
-    depends_on:
-      - vault
   consul:
     image: hashicorp/consul
     environment:
       - CONSUL_BIND_INTERFACE=eth0
     networks:
       - default
+      - otc-network
     deploy:
       restart_policy:
         condition: on-failure
@@ -57,11 +36,15 @@ services:
       - BACKEND_USER=${BACKEND_USER}
       - VAULT_HOST=vault
       - CONSUL_HOST=consul
+      - SPRING_PROFILES_ACTIVE=otc
+      - auth_url=${AUTH_URL}
+      - auth_jwk_endpoint=${JWK_ENDPOINT}
+      - zarinpal_api_key=${ZARINPAL_API_KEY}
     networks:
       - default
+      - otc-network
     depends_on:
       - consul
-      - vault
       - postgres-payment
     deploy:
       restart_policy:
@@ -72,3 +55,5 @@ volumes:
 networks:
   default:
     driver: bridge
+  otc-network:
+    external: true

@@ -1,0 +1,11 @@
+version: '3.8'
+services:
+  payment:
+    ports:
+      - "0.0.0.0:8096:8080"
+      - "127.0.0.1:1053:5005"
+  postgres-payment:
+    ports:
+      - "5438:5432"
+
+

@@ -4,5 +4,6 @@ object Gateways {
 
     const val Jibit = "JibitPaymentService"
     const val Vandar = "VandarPaymentService"
+    const val Zarinpal = "ZarinpalPaymentGateway"
 
 }
