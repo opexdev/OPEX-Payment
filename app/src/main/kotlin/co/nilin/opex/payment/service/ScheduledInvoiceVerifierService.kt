@@ -76,13 +76,11 @@ class ScheduledInvoiceVerifierService(
         invoice.status = response.status
         invoice.updateDate = LocalDateTime.now()
         invoiceRepository.save(invoice).awaitFirst()
-
+        ipgRequestRepository.save(ipgRequest).awaitFirst()
         val isNotified = opexBridgeService.notifyDeposit(invoice)
         invoice.isNotified = isNotified
         invoice.updateDate = LocalDateTime.now()
-
         invoiceRepository.save(invoice).awaitFirst()
-        ipgRequestRepository.save(ipgRequest).awaitFirst()
     }
 
     suspend fun notify(invoice: Invoice) {

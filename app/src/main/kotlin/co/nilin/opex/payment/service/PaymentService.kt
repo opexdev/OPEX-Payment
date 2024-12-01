@@ -80,20 +80,20 @@ class PaymentService(
         val invoice = invoiceRepository.findByReference(reference)
             .awaitFirstOrNull() ?: throw AppException(AppError.NotFound, "Payment not found")
 
-        val payInterval = Interval(2, TimeUnit.MINUTES).getLocalDateTime()
-        if (invoice.lastPayAttempt != null && invoice.lastPayAttempt!! > payInterval) {
-            logger.error("pay(): Invoice ${invoice.reference} locked")
-            return createErrorRedirect(AppException(AppError.PaymentLocked), invoice)
-        }
-
-        if (invoice.status != InvoiceStatus.Open) {
-            logger.error("pay(): Invoice ${invoice.reference} not allowed")
-            return createErrorRedirect(AppException(AppError.PaymentNotAllowed), invoice)
-        }
-
-        invoice.lastPayAttempt = LocalDateTime.now()
-        invoice.updateDate = LocalDateTime.now()
-        invoiceRepository.save(invoice).awaitFirst()
+//        val payInterval = Interval(2, TimeUnit.MINUTES).getLocalDateTime()
+//        if (invoice.lastPayAttempt != null && invoice.lastPayAttempt!! > payInterval) {
+//            logger.error("pay(): Invoice ${invoice.reference} locked")
+//            return createErrorRedirect(AppException(AppError.PaymentLocked), invoice)
+//        }
+//
+//        if (invoice.status != InvoiceStatus.Open) {
+//            logger.error("pay(): Invoice ${invoice.reference} not allowed")
+//            return createErrorRedirect(AppException(AppError.PaymentNotAllowed), invoice)
+//        }
+//
+//        invoice.lastPayAttempt = LocalDateTime.now()
+//        invoice.updateDate = LocalDateTime.now()
+//        invoiceRepository.save(invoice).awaitFirst()
 
         val previousRequest = ipgRequestRepository.findOpenRequest(invoice.id!!).awaitFirstOrNull()
         if (previousRequest != null) {
@@ -110,6 +110,7 @@ class PaymentService(
         } catch (ex: AppException) {
             logger.error("Error creating ipg request for invoice ${invoice.reference}", ex)
             return createErrorRedirect(ex, invoice)
+            throw AppException(AppError.Error)
         }
 
         val ipgRequest = ipgRequestRepository.save(
@@ -124,7 +125,6 @@ class PaymentService(
 
     @Transactional
     suspend fun verifyInvoice(reference: String, status: String): Invoice {
-        logger.info("--------------------")
         var invoice = invoiceRepository.findByReference(reference)
                 .awaitFirstOrNull() ?: throw AppException(AppError.NotFound, "Payment not found")
 
