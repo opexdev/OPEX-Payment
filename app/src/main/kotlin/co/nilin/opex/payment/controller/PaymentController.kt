@@ -38,11 +38,13 @@ class PaymentController(private val paymentService: PaymentService) {
         return RequestPaymentResponse(invoice.reference)
     }
 
+
+    data class PayResponse(val paymentURL:String)
     @GetMapping("/pay/{reference}")
-    suspend fun pay(@PathVariable reference: String): ResponseEntity<*> {
+    suspend fun pay(@PathVariable reference: String): PayResponse {
         val url = paymentService.pay(reference)
         logger.info("ipg url : $url")
-        return redirectTo(url)
+        return PayResponse(url)
     }
 
     @PostMapping("/verify/{id}")
