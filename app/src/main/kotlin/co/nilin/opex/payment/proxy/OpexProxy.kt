@@ -17,28 +17,40 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.awaitBody
 import org.springframework.web.reactive.function.client.body
 import reactor.core.publisher.Mono
+import java.math.BigDecimal
 import java.net.URI
 
 inline fun <reified T : Any> typeRef(): ParameterizedTypeReference<T> = object : ParameterizedTypeReference<T>() {}
 
 @Component
-class OpexProxy(@Qualifier("loadBalanced") private val client: WebClient,
+class OpexProxy(
+                private val webClient: WebClient,
                 private val environment: Environment
 ) {
 
     @Value("\${app.opex.wallet-url}")
     private lateinit var walletUrl: String
 
-
     @Value("\${app.opex.auth-url}")
     private lateinit var baseUrl: String
-
 
     @Value("\${app.opex.client-id}")
     private lateinit var clientId: String
 
     @Value("\${app.opex.client-secret}")
     private lateinit var clientSecret: String
+
+    data class DepositRequest(
+            val userId: String,
+            val amount: Double,
+            val currency: Currency,
+            val reference: String,
+            val description: String?
+    )
+
+    data class DepositResponse(val success: Boolean)
+
+
     suspend fun extractToken(): String? {
         if (environment.activeProfiles.contains("otc"))
             return getToken(LoginRequest(clientId, clientSecret)).data.accessToken
@@ -46,7 +58,7 @@ class OpexProxy(@Qualifier("loadBalanced") private val client: WebClient,
     }
 
     suspend fun getToken(loginRequest: LoginRequest): LoginResponse {
-        return client.post()
+        return webClient.post()
                 .uri(URI.create("${baseUrl}/api/v1/login"))
                 .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
                 .body(
@@ -61,20 +73,10 @@ class OpexProxy(@Qualifier("loadBalanced") private val client: WebClient,
                 .awaitFirst()
     }
 
-    data class DepositRequest(
-            val userId: String,
-            val amount: Double,
-            val currency: Currency,
-            val reference: String,
-            val description: String?
-    )
-
-    data class DepositResponse(val success: Boolean)
-
     suspend fun deposit(invoice: Invoice): DepositResponse {
         val request = with(invoice) { DepositRequest(userId, amount, currency, reference, description) }
         val token = extractToken()
-        return client.post()
+        return webClient.post()
                 .uri("$walletUrl/payment/internal/deposit")
                 .headers { httpHeaders ->
                     run {

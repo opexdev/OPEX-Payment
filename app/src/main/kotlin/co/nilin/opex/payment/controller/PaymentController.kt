@@ -4,13 +4,11 @@ import co.nilin.opex.payment.data.CancelOrderResponse
 import co.nilin.opex.payment.data.RequestPaymentRequest
 import co.nilin.opex.payment.data.RequestPaymentResponse
 import co.nilin.opex.payment.service.PaymentService
+import co.nilin.opex.payment.utils.jwtAuthentication
+import co.nilin.opex.payment.utils.tryOrNull
 import com.opex.payment.core.error.AppError
 import com.opex.payment.core.error.AppException
-import co.nilin.opex.payment.utils.jwtAuthentication
-import co.nilin.opex.payment.utils.redirectTo
-import co.nilin.opex.payment.utils.tryOrNull
 import org.slf4j.LoggerFactory
-import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.security.Principal
 
@@ -21,8 +19,8 @@ class PaymentController(private val paymentService: PaymentService) {
 
     @PostMapping("/request")
     suspend fun create(
-        principal: Principal,
-        @RequestBody request: RequestPaymentRequest
+            principal: Principal,
+            @RequestBody request: RequestPaymentRequest
     ): RequestPaymentResponse {
         val claims = try {
             principal.jwtAuthentication().token.claims
@@ -39,7 +37,8 @@ class PaymentController(private val paymentService: PaymentService) {
     }
 
 
-    data class PayResponse(val paymentURL:String)
+    data class PayResponse(val paymentURL: String)
+
     @GetMapping("/pay/{reference}")
     suspend fun pay(@PathVariable reference: String): PayResponse {
         val url = paymentService.pay(reference)
@@ -47,8 +46,8 @@ class PaymentController(private val paymentService: PaymentService) {
         return PayResponse(url)
     }
 
-    @PostMapping("/verify/{id}")
-    suspend fun verify(@PathVariable id: String, @RequestParam status: String) {
+    @PostMapping("/verify/{ipg-token}")
+    suspend fun verify(@PathVariable("ipg-token") id: String, @RequestParam status: String) {
         paymentService.verifyInvoice(id, status)
     }
 

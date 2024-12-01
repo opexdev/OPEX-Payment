@@ -40,7 +40,7 @@ logging:
     reactor.netty.http.client: DEBUG
 app:
   opex:
-    wallet-url: http://opex-wallet:8080
+    wallet-url: http://wallet:8080
     auth-url: ${auth_url}
     cert-url: ${auth_jwk_endpoint}
     client-id: ${client_id}

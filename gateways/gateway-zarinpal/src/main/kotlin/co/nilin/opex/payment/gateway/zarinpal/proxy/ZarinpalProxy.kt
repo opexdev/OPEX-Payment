@@ -67,9 +67,6 @@ class ZarinpalProxy(private val client: WebClient) {
     )
 
     suspend fun verifyTransaction(merchantId: String, token: String, amount: Long): VerifyResponse {
-        logger.info("merchantId : $merchantId")
-        logger.info("authority : $token")
-        logger.info("amount : $amount")
 
         return client.post()
                 .uri("$ipgUrl/verify.json")

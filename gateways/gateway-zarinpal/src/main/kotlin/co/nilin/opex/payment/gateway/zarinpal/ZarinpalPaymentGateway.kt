@@ -1,7 +1,6 @@
 package co.nilin.opex.payment.gateway.zarinpal
 
 import co.nilin.opex.payment.gateway.zarinpal.data.BaseResponse
-import co.nilin.opex.payment.gateway.zarinpal.data.VerifyResponse
 import co.nilin.opex.payment.gateway.zarinpal.proxy.ZarinpalProxy
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.opex.payment.core.Gateways
@@ -59,14 +58,10 @@ class ZarinpalPaymentGateway(private val proxy: ZarinpalProxy, private val mappe
             val response = proxy.verifyTransaction(apiKey, request.requestId, invoice.amount.toLong())
             if (response.data?.code == 100 || response.data?.code == 101) InvoiceStatus.Done else InvoiceStatus.Undefined
         } catch (e: WebClientResponseException) {
-            val body = mapper.readValue(e.responseBodyAsByteArray, VerifyResponse::class.java)
-            val errors = body.errors.map { String(it.toByteArray(), Charsets.UTF_8) }
-            logger.error("status: ${e.statusCode} - errors: $errors")
+            val body = mapper.readValue(e.responseBodyAsByteArray, ErrorResponse::class.java)
             logger.error("verify() error", e)
-
-            when (body.data?.code) {
-                100 -> InvoiceStatus.Done
-                101 -> InvoiceStatus.Done
+            when (body.errors?.code) {
+                -53 -> InvoiceStatus.Open
                 else -> InvoiceStatus.Failed
             }
         }

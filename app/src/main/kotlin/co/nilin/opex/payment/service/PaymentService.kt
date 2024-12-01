@@ -124,13 +124,13 @@ class PaymentService(
     }
 
     @Transactional
-    suspend fun verifyInvoice(reference: String, status: String): Invoice {
-        var invoice = invoiceRepository.findByReference(reference)
-                .awaitFirstOrNull() ?: throw AppException(AppError.NotFound, "Payment not found")
+    suspend fun verifyInvoice(ipgToken: String, status: String): Invoice {
 
-        val request = ipgRequestRepository.findByInvoiceId(invoice.id!!)
+        val request = ipgRequestRepository.findByRequestId(ipgToken)
             .awaitFirstOrNull() ?: throw AppException(AppError.NotFound, "Payment not found")
 
+        var invoice = invoiceRepository.findById(request.invoiceId)
+                .awaitFirstOrNull() ?: throw AppException(AppError.NotFound, "Payment not found")
 
 
         val gatewayModel = gatewayRepository.findById(invoice.paymentGatewayId).awaitFirst()
