@@ -14,7 +14,7 @@ data class Verify(
     @JsonProperty("card_pan")
     val cardPan: String,
     @JsonProperty("ref_id")
-    val referenceId: Int,
+    val referenceId: String,
     @JsonProperty("fee_type")
     val feeType: String,
     val fee: Long

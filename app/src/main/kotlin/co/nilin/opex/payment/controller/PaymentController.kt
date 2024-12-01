@@ -9,6 +9,7 @@ import com.opex.payment.core.error.AppException
 import co.nilin.opex.payment.utils.jwtAuthentication
 import co.nilin.opex.payment.utils.redirectTo
 import co.nilin.opex.payment.utils.tryOrNull
+import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.security.Principal
@@ -16,6 +17,7 @@ import java.security.Principal
 @RestController
 @RequestMapping("/v1/payment")
 class PaymentController(private val paymentService: PaymentService) {
+    private val logger = LoggerFactory.getLogger(PaymentController::class.java)
 
     @PostMapping("/request")
     suspend fun create(
@@ -39,6 +41,7 @@ class PaymentController(private val paymentService: PaymentService) {
     @GetMapping("/pay/{reference}")
     suspend fun pay(@PathVariable reference: String): ResponseEntity<*> {
         val url = paymentService.pay(reference)
+        logger.info("ipg url : $url")
         return redirectTo(url)
     }
 

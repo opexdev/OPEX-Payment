@@ -40,6 +40,8 @@ services:
       - auth_url=${AUTH_URL}
       - auth_jwk_endpoint=${JWK_ENDPOINT}
       - zarinpal_api_key=${ZARINPAL_API_KEY}
+      - CLIENT_SECRET=${CLIENT_SECRET}
+      - CLIENT_ID=${CLIENT_ID}
     networks:
       - default
       - otc-network

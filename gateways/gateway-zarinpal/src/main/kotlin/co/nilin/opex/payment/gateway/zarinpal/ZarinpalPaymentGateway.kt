@@ -1,7 +1,6 @@
 package co.nilin.opex.payment.gateway.zarinpal
 
 import co.nilin.opex.payment.gateway.zarinpal.data.BaseResponse
-import co.nilin.opex.payment.gateway.zarinpal.data.TxResponse
 import co.nilin.opex.payment.gateway.zarinpal.data.VerifyResponse
 import co.nilin.opex.payment.gateway.zarinpal.proxy.ZarinpalProxy
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -30,14 +29,15 @@ class ZarinpalPaymentGateway(private val proxy: ZarinpalProxy, private val mappe
         val response = try {
             with(invoice) {
                 proxy.createTransactionToken(
-                    apiKey,
-                    amount.toLong(),
-                    callbackUrl,
-                    mobile,
-                    reference,
-                    description,
-                    cardNumber,
-                    nationalCode
+                        apiKey,
+                        amount.toLong(),
+                        callbackUrl,
+                        mobile,
+                        reference,
+                        description,
+                        cardNumber,
+                        nationalCode,
+                        currency
                 )
             }
         } catch (e: WebClientResponseException) {
@@ -55,8 +55,9 @@ class ZarinpalPaymentGateway(private val proxy: ZarinpalProxy, private val mappe
 //        validateTransaction(invoice, tx)
 
         val status = try {
-            val response = proxy.verifyTransaction(apiKey, request.requestId,invoice.amount.toLong())
-            if (response.data.code == 100) InvoiceStatus.Done else InvoiceStatus.Undefined
+            logger.info("authority :${request.requestId}")
+            val response = proxy.verifyTransaction(apiKey, request.requestId, invoice.amount.toLong())
+            if (response.data.code == 100 || response.data.code == 101) InvoiceStatus.Done else InvoiceStatus.Undefined
         } catch (e: WebClientResponseException) {
             val body = mapper.readValue(e.responseBodyAsByteArray, VerifyResponse::class.java)
             val errors = body.errors.map { String(it.toByteArray(), Charsets.UTF_8) }

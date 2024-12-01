@@ -11,6 +11,10 @@ interface IPGRequestRepository : ReactiveCrudRepository<IPGRequest, Long> {
 
     fun findByRequestId(requestId: String): Mono<IPGRequest>
 
+
+    fun findByInvoiceId(invoiceId: Long): Mono<IPGRequest>
+
+
     @Query("SELECT * FROM ipg_request WHERE invoice_id = :invoiceId AND is_expired = FALSE AND is_paid = FALSE")
     fun findOpenRequest(invoiceId: Long): Mono<IPGRequest>
 
