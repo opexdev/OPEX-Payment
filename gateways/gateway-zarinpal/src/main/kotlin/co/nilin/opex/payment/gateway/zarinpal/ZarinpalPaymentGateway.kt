@@ -57,14 +57,14 @@ class ZarinpalPaymentGateway(private val proxy: ZarinpalProxy, private val mappe
         val status = try {
             logger.info("authority :${request.requestId}")
             val response = proxy.verifyTransaction(apiKey, request.requestId, invoice.amount.toLong())
-            if (response.data.code == 100 || response.data.code == 101) InvoiceStatus.Done else InvoiceStatus.Undefined
+            if (response.data?.code == 100 || response.data?.code == 101) InvoiceStatus.Done else InvoiceStatus.Undefined
         } catch (e: WebClientResponseException) {
             val body = mapper.readValue(e.responseBodyAsByteArray, VerifyResponse::class.java)
             val errors = body.errors.map { String(it.toByteArray(), Charsets.UTF_8) }
             logger.error("status: ${e.statusCode} - errors: $errors")
             logger.error("verify() error", e)
 
-            when (body.data.code) {
+            when (body.data?.code) {
                 100 -> InvoiceStatus.Done
                 101 -> InvoiceStatus.Done
                 else -> InvoiceStatus.Failed
