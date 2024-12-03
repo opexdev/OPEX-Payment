@@ -37,7 +37,7 @@ class ScheduledInvoiceVerifierService(
     private val executor = Executors.newFixedThreadPool(2)
     private val logger = LoggerFactory.getLogger(ScheduledInvoiceVerifierService::class.java)
 
-    @Scheduled(fixedDelay = 30000)
+    @Scheduled(fixedDelay = 72000)
     fun runVerifier() {
         executor.execute { runBlocking(Dispatchers.IO) { verifyInvoices() } }
     }
