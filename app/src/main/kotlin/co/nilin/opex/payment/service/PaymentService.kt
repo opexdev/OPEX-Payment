@@ -7,7 +7,6 @@ import co.nilin.opex.payment.data.RequestPaymentRequest
 import co.nilin.opex.payment.model.IPGRequest
 import co.nilin.opex.payment.model.Invoice
 import co.nilin.opex.payment.model.PaymentGatewayModel
-import co.nilin.opex.payment.utils.Interval
 import co.nilin.opex.payment.utils.asIPGRequestDTO
 import co.nilin.opex.payment.utils.asInvoiceDTO
 import co.nilin.opex.payment.utils.equalsAny
@@ -24,26 +23,26 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.security.Principal
 import java.time.LocalDateTime
-import java.util.concurrent.TimeUnit
 
 @Service
 class PaymentService(
-    private val beanFactory: BeanFactory,
-    private val opexBridgeService: OpexBridgeService,
-    private val invoiceRepository: InvoiceRepository,
-    private val gatewayRepository: PaymentGatewayRepository,
-    private val ipgRequestRepository: IPGRequestRepository,
+        private val beanFactory: BeanFactory,
+        private val opexBridgeService: OpexBridgeService,
+        private val invoiceRepository: InvoiceRepository,
+        private val gatewayRepository: PaymentGatewayRepository,
+        private val ipgRequestRepository: IPGRequestRepository,
+        private val saveInvoiceTx: SaveInvoiceTx
 ) {
 
     private val logger = LoggerFactory.getLogger(PaymentService::class.java)
 
     @Transactional
     suspend fun createNewInvoice(
-        principal: Principal,
-        request: RequestPaymentRequest,
-        mobile: String?,
-        cardNumber: String?,
-        nationalCode: String?,
+            principal: Principal,
+            request: RequestPaymentRequest,
+            mobile: String?,
+            cardNumber: String?,
+            nationalCode: String?,
     ): Invoice {
         //todo change in gateway selection
         val gatewayModel = selectGateway(name = null)
@@ -56,15 +55,15 @@ class PaymentService(
 
         val invoice = with(request) {
             Invoice(
-                principal.name,
-                amount,
-                callbackUrl,
-                currency,
-                gatewayModel.id!!,
-                cardNumber = cardNumber,
-                description = description,
-                mobile = mobile,
-                nationalCode = nationalCode
+                    principal.name,
+                    amount,
+                    callbackUrl,
+                    currency,
+                    gatewayModel.id!!,
+                    cardNumber = cardNumber,
+                    description = description,
+                    mobile = mobile,
+                    nationalCode = nationalCode
             )
         }
 
@@ -78,7 +77,7 @@ class PaymentService(
     suspend fun pay(reference: String): String {
         //TODO Where to redirect the error when invoice is null?
         val invoice = invoiceRepository.findByReference(reference)
-            .awaitFirstOrNull() ?: throw AppException(AppError.NotFound, "Payment not found")
+                .awaitFirstOrNull() ?: throw AppException(AppError.NotFound, "Payment not found")
 
 //        val payInterval = Interval(2, TimeUnit.MINUTES).getLocalDateTime()
 //        if (invoice.lastPayAttempt != null && invoice.lastPayAttempt!! > payInterval) {
@@ -114,10 +113,10 @@ class PaymentService(
         }
 
         val ipgRequest = ipgRequestRepository.save(
-            IPGRequest(
-                invoice.id!!,
-                response.gatewayId
-            )
+                IPGRequest(
+                        invoice.id!!,
+                        response.gatewayId
+                )
         ).awaitFirst()
 
         return service.createRedirectUrl(ipgRequest.asIPGRequestDTO())
@@ -127,7 +126,7 @@ class PaymentService(
     suspend fun verifyInvoice(ipgToken: String, status: String): Invoice {
 
         val request = ipgRequestRepository.findByRequestId(ipgToken)
-            .awaitFirstOrNull() ?: throw AppException(AppError.NotFound, "Payment not found")
+                .awaitFirstOrNull() ?: throw AppException(AppError.NotFound, "Payment not found")
 
         var invoice = invoiceRepository.findById(request.invoiceId)
                 .awaitFirstOrNull() ?: throw AppException(AppError.NotFound, "Payment not found")
@@ -140,22 +139,26 @@ class PaymentService(
 
 
         if (invoice.status.equalsAny(InvoiceStatus.Expired, InvoiceStatus.Canceled, InvoiceStatus.Failed))
-            throw AppException(AppError.PaymentNotAllowed)
+            throw AppException(AppError.VerificationFailed)
 
         if (invoice.status == InvoiceStatus.Done)
             throw AppException(AppError.AlreadyVerified)
 
         if (invoice.status == InvoiceStatus.Open) {
             val response = service.verify(invoice.asInvoiceDTO(), request.asIPGRequestDTO())
-            if (response.status == InvoiceStatus.Undefined)
+
+            if (response.status == InvoiceStatus.Failed) {
+                invoice.status = response.status
+                saveInvoiceTx.forceInvoiceUpdate(invoice)
                 throw AppException(AppError.VerificationFailed)
+            }
 
             request.isPaid = response.status == InvoiceStatus.Done
             ipgRequestRepository.save(request).awaitFirst()
 
             invoice.status = response.status
             invoice.updateDate = LocalDateTime.now()
-            invoice = invoiceRepository.save(invoice).awaitFirst()
+            invoice = saveInvoiceTx.forceInvoiceUpdate(invoice)
         }
 
         if (invoice.status == InvoiceStatus.Done && !invoice.isNotified) {
@@ -174,7 +177,7 @@ class PaymentService(
 
     suspend fun cancel(principal: Principal, reference: String): Invoice {
         val invoice = invoiceRepository.findByReference(reference).awaitFirstOrNull()
-            ?: throw AppException(AppError.NotFound, "Payment not found")
+                ?: throw AppException(AppError.NotFound, "Payment not found")
 
         if (principal.name != invoice.userId)
             throw AppException(AppError.Forbidden)
@@ -188,7 +191,7 @@ class PaymentService(
 
     private suspend fun selectGateway(name: String?): PaymentGatewayModel {
         val gateway = name?.let { gatewayRepository.findByName(name)?.awaitFirstOrNull() }
-            ?: gatewayRepository.findAll()?.awaitFirstOrNull()
+                ?: gatewayRepository.findAll()?.awaitFirstOrNull()
         if (gateway?.isEnabled == true)
             return gateway
         else

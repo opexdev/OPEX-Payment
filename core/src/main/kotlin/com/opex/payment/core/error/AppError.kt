@@ -13,7 +13,7 @@ enum class AppError(val code: Int, val message: String?, val status: HttpStatus)
     InvalidRequestParam(1020, "Parameter '%s' is either missing or invalid", HttpStatus.BAD_REQUEST),
 
     AlreadyVerified(13000, "This payment is already verified", HttpStatus.BAD_REQUEST),
-    VerificationFailed(13001, "Unable to verify", HttpStatus.INTERNAL_SERVER_ERROR),
+    VerificationFailed(13001, "Payment is failed", HttpStatus.INTERNAL_SERVER_ERROR),
     VerificationNotAllowed(13002, "Verification is not allowed for this payment", HttpStatus.FORBIDDEN),
     PaymentNotAllowed(13003, "Payment is not allowed for this invoice", HttpStatus.FORBIDDEN),
     OpenPayments(13004, "Found open payments for user. Finish or cancel open payments", HttpStatus.BAD_REQUEST),
