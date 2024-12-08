@@ -26,23 +26,23 @@ import java.time.LocalDateTime
 
 @Service
 class PaymentService(
-    private val beanFactory: BeanFactory,
-    private val opexBridgeService: OpexBridgeService,
-    private val invoiceRepository: InvoiceRepository,
-    private val gatewayRepository: PaymentGatewayRepository,
-    private val ipgRequestRepository: IPGRequestRepository,
-    private val saveInvoiceTx: SaveInvoiceTx
+        private val beanFactory: BeanFactory,
+        private val opexBridgeService: OpexBridgeService,
+        private val invoiceRepository: InvoiceRepository,
+        private val gatewayRepository: PaymentGatewayRepository,
+        private val ipgRequestRepository: IPGRequestRepository,
+        private val saveInvoiceTx: SaveInvoiceTx
 ) {
 
     private val logger = LoggerFactory.getLogger(PaymentService::class.java)
 
     @Transactional
     suspend fun createNewInvoice(
-        principal: Principal,
-        request: RequestPaymentRequest,
-        mobile: String?,
-        cardNumber: String?,
-        nationalCode: String?,
+            principal: Principal,
+            request: RequestPaymentRequest,
+            mobile: String?,
+            cardNumber: String?,
+            nationalCode: String?,
     ): Invoice {
         //todo change in gateway selection
         val gatewayModel = selectGateway(name = null)
@@ -55,15 +55,15 @@ class PaymentService(
 
         val invoice = with(request) {
             Invoice(
-                principal.name,
-                amount,
-                callbackUrl,
-                currency,
-                gatewayModel.id!!,
-                cardNumber = cardNumber,
-                description = description,
-                mobile = mobile,
-                nationalCode = nationalCode
+                    principal.name,
+                    amount,
+                    callbackUrl,
+                    currency,
+                    gatewayModel.id!!,
+                    cardNumber = cardNumber,
+                    description = description,
+                    mobile = mobile,
+                    nationalCode = nationalCode
             )
         }
 
@@ -77,7 +77,7 @@ class PaymentService(
     suspend fun pay(reference: String): String {
         //TODO Where to redirect the error when invoice is null?
         val invoice = invoiceRepository.findByReference(reference)
-            .awaitFirstOrNull() ?: throw AppException(AppError.NotFound, "Payment not found")
+                .awaitFirstOrNull() ?: throw AppException(AppError.NotFound, "Payment not found")
 
 //        val payInterval = Interval(2, TimeUnit.MINUTES).getLocalDateTime()
 //        if (invoice.lastPayAttempt != null && invoice.lastPayAttempt!! > payInterval) {
@@ -113,10 +113,10 @@ class PaymentService(
         }
 
         val ipgRequest = ipgRequestRepository.save(
-            IPGRequest(
-                invoice.id!!,
-                response.gatewayId
-            )
+                IPGRequest(
+                        invoice.id!!,
+                        response.gatewayId
+                )
         ).awaitFirst()
 
         return service.createRedirectUrl(ipgRequest.asIPGRequestDTO())
@@ -126,10 +126,10 @@ class PaymentService(
     suspend fun verifyInvoice(ipgToken: String, status: String): Invoice {
 
         val request = ipgRequestRepository.findByRequestId(ipgToken)
-            .awaitFirstOrNull() ?: throw AppException(AppError.NotFound, "Payment not found")
+                .awaitFirstOrNull() ?: throw AppException(AppError.NotFound, "Payment not found")
 
         var invoice = invoiceRepository.findById(request.invoiceId)
-            .awaitFirstOrNull() ?: throw AppException(AppError.NotFound, "Payment not found")
+                .awaitFirstOrNull() ?: throw AppException(AppError.NotFound, "Payment not found")
 
 
         val gatewayModel = gatewayRepository.findById(invoice.paymentGatewayId).awaitFirst()
@@ -162,24 +162,36 @@ class PaymentService(
         }
 
         if (invoice.status == InvoiceStatus.Done && !invoice.isNotified) {
-            invoice.isNotified = try {
-                    opexBridgeService.notifyDeposit(invoice)
-            } catch (e: Exception) {
-                logger.error("Failed to notify the core system for invoice ${invoice.reference}", e)
-                invoice.status=InvoiceStatus.Deposit_Failed
-                invoice.updateDate = LocalDateTime.now()
-                saveInvoiceTx.forceInvoiceUpdate(invoice)
-                false
-            }
-            invoice.updateDate = LocalDateTime.now()
-            invoice = invoiceRepository.save(invoice).awaitFirst()
+            deposit(invoice, true)
         }
         return invoice
+
+    }
+
+    suspend fun deposit(invoice: Invoice, retry: Boolean): Boolean {
+        try {
+            invoice.isNotified =
+                    opexBridgeService.notifyDeposit(invoice)
+            invoice.status = InvoiceStatus.Deposit_Failed
+            invoice.updateDate = LocalDateTime.now()
+            saveInvoiceTx.forceInvoiceUpdate(invoice)
+            return invoice.isNotified
+        } catch (e: Exception) {
+            logger.error("Failed to notify the core system for invoice ${invoice.reference}", e)
+            if (retry) {
+                return deposit(invoice, false)
+            } else {
+                invoice.status = InvoiceStatus.Deposit_Failed
+                invoice.updateDate = LocalDateTime.now()
+                saveInvoiceTx.forceInvoiceUpdate(invoice)
+                return false
+            }
+        }
     }
 
     suspend fun cancel(principal: Principal, reference: String): Invoice {
         val invoice = invoiceRepository.findByReference(reference).awaitFirstOrNull()
-            ?: throw AppException(AppError.NotFound, "Payment not found")
+                ?: throw AppException(AppError.NotFound, "Payment not found")
 
         if (principal.name != invoice.userId)
             throw AppException(AppError.Forbidden)
@@ -193,7 +205,7 @@ class PaymentService(
 
     private suspend fun selectGateway(name: String?): PaymentGatewayModel {
         val gateway = name?.let { gatewayRepository.findByName(name)?.awaitFirstOrNull() }
-            ?: gatewayRepository.findAll()?.awaitFirstOrNull()
+                ?: gatewayRepository.findAll()?.awaitFirstOrNull()
         if (gateway?.isEnabled == true)
             return gateway
         else
