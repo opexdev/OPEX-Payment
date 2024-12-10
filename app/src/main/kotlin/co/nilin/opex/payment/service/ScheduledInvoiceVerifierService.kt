@@ -31,7 +31,8 @@ class ScheduledInvoiceVerifierService(
     private val opexBridgeService: OpexBridgeService,
     private val invoiceRepository: InvoiceRepository,
     private val gatewayRepository: PaymentGatewayRepository,
-    private val ipgRequestRepository: IPGRequestRepository
+    private val ipgRequestRepository: IPGRequestRepository,
+        private val paymentService: PaymentService
 ) {
 
     private val executor = Executors.newFixedThreadPool(2)
@@ -43,6 +44,7 @@ class ScheduledInvoiceVerifierService(
     }
 
     suspend fun verifyInvoices() {
+        logger.info("Run schedule to verify open/ non notified payment request .........")
         val verifyTime = Interval(2, TimeUnit.MINUTES).getLocalDateTime()
         val notifyTime = Interval(1, TimeUnit.MINUTES).getLocalDateTime()
         invoiceRepository.findAllOpenOlderThan(verifyTime)
@@ -68,19 +70,20 @@ class ScheduledInvoiceVerifierService(
         logger.info("Verifying invoice ${invoice.reference}")
         val ipgRequest = ipgRequestRepository.findOpenRequest(invoice.id!!).awaitFirstOrNull() ?: return
         val gatewayModel = gatewayRepository.findById(invoice.paymentGatewayId).awaitFirst()
-        val service = getGatewayService(gatewayModel.name)
-
+//        val service = getGatewayService(gatewayModel.name)
         delay(2000)
-        val response = service.verify(invoice.asInvoiceDTO(), ipgRequest.asIPGRequestDTO())
-        ipgRequest.isPaid = response.status == InvoiceStatus.Done
-        invoice.status = response.status
-        invoice.updateDate = LocalDateTime.now()
-        invoiceRepository.save(invoice).awaitFirst()
-        ipgRequestRepository.save(ipgRequest).awaitFirst()
-        val isNotified = opexBridgeService.notifyDeposit(invoice)
-        invoice.isNotified = isNotified
-        invoice.updateDate = LocalDateTime.now()
-        invoiceRepository.save(invoice).awaitFirst()
+        paymentService.verifyInvoice(ipgRequest.requestId,null)
+
+//        val response = service.verify(invoice.asInvoiceDTO(), ipgRequest.asIPGRequestDTO())
+//        ipgRequest.isPaid = response.status == InvoiceStatus.Done
+//        invoice.status = response.status
+//        invoice.updateDate = LocalDateTime.now()
+//        invoiceRepository.save(invoice).awaitFirst()
+//        ipgRequestRepository.save(ipgRequest).awaitFirst()
+//        val isNotified = opexBridgeService.notifyDeposit(invoice)
+//        invoice.isNotified = isNotified
+//        invoice.updateDate = LocalDateTime.now()
+//        invoiceRepository.save(invoice).awaitFirst()
     }
 
     suspend fun notify(invoice: Invoice) {

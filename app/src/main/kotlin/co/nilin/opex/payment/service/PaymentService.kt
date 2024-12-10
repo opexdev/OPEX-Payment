@@ -123,7 +123,7 @@ class PaymentService(
     }
 
     @Transactional
-    suspend fun verifyInvoice(ipgToken: String, status: String): Invoice {
+    suspend fun verifyInvoice(ipgToken: String, status: String?=null): Invoice {
 
         val request = ipgRequestRepository.findByRequestId(ipgToken)
                 .awaitFirstOrNull() ?: throw AppException(AppError.NotFound, "Payment not found")
