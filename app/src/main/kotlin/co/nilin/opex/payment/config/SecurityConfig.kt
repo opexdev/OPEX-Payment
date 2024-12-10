@@ -28,6 +28,7 @@ class SecurityConfig {
             .authorizeExchange()
             .pathMatchers("/actuator/health").permitAll()
             .pathMatchers("/v1/payment/pay/**").permitAll()
+            .pathMatchers("/v1/payment/verify/**").permitAll()
             .pathMatchers("/v1/payment/**").hasRoleWithAnyAuthorities("user_kyc", "SCOPE_trust", "SCOPE_ipg")
             .pathMatchers("/v1/invoice/**").hasRoleWithAnyAuthorities("user_kyc", "SCOPE_trust")
             .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()

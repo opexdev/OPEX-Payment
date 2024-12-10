@@ -38,14 +38,14 @@ class ScheduledInvoiceVerifierService(
     private val executor = Executors.newFixedThreadPool(2)
     private val logger = LoggerFactory.getLogger(ScheduledInvoiceVerifierService::class.java)
 
-    @Scheduled(fixedDelay = 72000)
+    @Scheduled(fixedDelay = 1800000)
     fun runVerifier() {
         executor.execute { runBlocking(Dispatchers.IO) { verifyInvoices() } }
     }
 
     suspend fun verifyInvoices() {
         logger.info("Run schedule to verify open/ non notified payment request .........")
-        val verifyTime = Interval(2, TimeUnit.MINUTES).getLocalDateTime()
+        val verifyTime = Interval(12, TimeUnit.MINUTES).getLocalDateTime()
 //        val notifyTime = Interval(1, TimeUnit.MINUTES).getLocalDateTime()
         invoiceRepository.findAllOpenOlderThan(verifyTime)
             .collectList()
