@@ -9,7 +9,6 @@ import co.nilin.opex.payment.model.Invoice
 import co.nilin.opex.payment.model.PaymentGatewayModel
 import co.nilin.opex.payment.utils.asIPGRequestDTO
 import co.nilin.opex.payment.utils.asInvoiceDTO
-import co.nilin.opex.payment.utils.equalsAny
 import com.opex.payment.core.error.AppError
 import com.opex.payment.core.error.AppException
 import com.opex.payment.core.model.InvoiceStatus
@@ -123,7 +122,7 @@ class PaymentService(
     }
 
     @Transactional
-    suspend fun verifyInvoice(ipgToken: String, status: String?=null): Invoice {
+    suspend fun verifyInvoice(ipgToken: String, status: String? = null): Invoice {
 
         val request = ipgRequestRepository.findByRequestId(ipgToken)
                 .awaitFirstOrNull() ?: throw AppException(AppError.NotFound, "Payment not found")
@@ -137,29 +136,29 @@ class PaymentService(
 
         logger.info("invoice status : ${invoice.status}")
 
-        if (invoice.status.equalsAny(InvoiceStatus.Expired, InvoiceStatus.Canceled, InvoiceStatus.Failed))
-            throw AppException(AppError.VerificationFailed)
+//        if (invoice.status.equalsAny(InvoiceStatus.Expired, InvoiceStatus.Canceled, InvoiceStatus.Failed))
+//            throw AppException(AppError.VerificationFailed)
 
         if (invoice.status == InvoiceStatus.Done)
             throw AppException(AppError.AlreadyVerified)
 
-        if (invoice.status == InvoiceStatus.Open) {
-            val response = service.verify(invoice.asInvoiceDTO(), request.asIPGRequestDTO())
+//        if (invoice.status == InvoiceStatus.Open) {
+        val response = service.verify(invoice.asInvoiceDTO(), request.asIPGRequestDTO())
 
-            if (response.status == InvoiceStatus.Failed) {
-                invoice.status = response.status
-                saveInvoiceTx.forceInvoiceUpdate(invoice)
-                throw AppException(AppError.VerificationFailed)
-            }
-
-            request.isPaid = response.status == InvoiceStatus.Done
-            ipgRequestRepository.save(request).awaitFirst()
-
-
+        if (response.status == InvoiceStatus.Failed) {
             invoice.status = response.status
-            invoice.updateDate = LocalDateTime.now()
-            invoice = saveInvoiceTx.forceInvoiceUpdate(invoice)
+            saveInvoiceTx.forceInvoiceUpdate(invoice)
+            throw AppException(AppError.VerificationFailed)
         }
+
+        request.isPaid = response.status == InvoiceStatus.Done
+        ipgRequestRepository.save(request).awaitFirst()
+
+
+        invoice.status = response.status
+        invoice.updateDate = LocalDateTime.now()
+        invoice = saveInvoiceTx.forceInvoiceUpdate(invoice)
+        // }
 
         if (invoice.status == InvoiceStatus.Done && !invoice.isNotified) {
             deposit(invoice, true)

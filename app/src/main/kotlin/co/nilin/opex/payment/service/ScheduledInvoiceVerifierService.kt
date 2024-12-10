@@ -46,7 +46,7 @@ class ScheduledInvoiceVerifierService(
     suspend fun verifyInvoices() {
         logger.info("Run schedule to verify open/ non notified payment request .........")
         val verifyTime = Interval(2, TimeUnit.MINUTES).getLocalDateTime()
-        val notifyTime = Interval(1, TimeUnit.MINUTES).getLocalDateTime()
+//        val notifyTime = Interval(1, TimeUnit.MINUTES).getLocalDateTime()
         invoiceRepository.findAllOpenOlderThan(verifyTime)
             .collectList()
             .awaitFirstOrElse { emptyList() }
@@ -57,12 +57,12 @@ class ScheduledInvoiceVerifierService(
                 checkExpiry(it)
             }
 
-        invoiceRepository.findAllDoneButNotNotifiedOlderThan(notifyTime)
-            .collectList()
-            .awaitFirstOrElse { emptyList() }
-            .take(10)
-            .also { if (it.isNotEmpty()) logger.info("notifying ${it.size} invoices") }
-            .forEach { notify(it) }
+//        invoiceRepository.findAllDoneButNotNotifiedOlderThan(notifyTime)
+//            .collectList()
+//            .awaitFirstOrElse { emptyList() }
+//            .take(10)
+//            .also { if (it.isNotEmpty()) logger.info("notifying ${it.size} invoices") }
+//            .forEach { notify(it) }
     }
 
     @Transactional
@@ -86,17 +86,17 @@ class ScheduledInvoiceVerifierService(
 //        invoiceRepository.save(invoice).awaitFirst()
     }
 
-    suspend fun notify(invoice: Invoice) {
-        delay(2000)
-        logger.info("Notifying invoice ${invoice.reference}")
-        invoice.isNotified = try {
-            opexBridgeService.notifyDeposit(invoice)
-        } catch (e: Exception) {
-            logger.error("Failed to notify the core system for invoice ${invoice.reference}", e)
-            false
-        }
-        invoiceRepository.save(invoice).awaitFirst()
-    }
+//    suspend fun notify(invoice: Invoice) {
+//        delay(2000)
+//        logger.info("Notifying invoice ${invoice.reference}")
+//        invoice.isNotified = try {
+//            opexBridgeService.notifyDeposit(invoice)
+//        } catch (e: Exception) {
+//            logger.error("Failed to notify the core system for invoice ${invoice.reference}", e)
+//            false
+//        }
+//        invoiceRepository.save(invoice).awaitFirst()
+//    }
 
     suspend fun checkExpiry(invoice: Invoice) {
         val expiryTime = Interval(20, TimeUnit.MINUTES).getLocalDateTime()
