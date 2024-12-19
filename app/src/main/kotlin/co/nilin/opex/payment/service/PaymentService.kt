@@ -151,6 +151,17 @@ class PaymentService(
             throw AppException(AppError.VerificationFailed)
         }
 
+
+//        if (response.status == InvoiceStatus.Failed && status.equals("NOK")) {
+//            invoice.status = response.status
+//            saveInvoiceTx.forceInvoiceUpdate(invoice)
+//            throw AppException(AppError.VerificationFailed)
+//        }
+//
+//        if (response.status == InvoiceStatus.Failed && status.equals("OK")) {
+//            verifyInvoice(ipgToken,"OK")
+//        }
+
         request.isPaid = response.status == InvoiceStatus.Done
         ipgRequestRepository.save(request).awaitFirst()
 
