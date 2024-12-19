@@ -47,6 +47,7 @@ class SecurityConfig {
             .authorizeExchange()
             .pathMatchers("/actuator/health").permitAll()
             .pathMatchers("/v1/payment/pay/**").permitAll()
+            .pathMatchers("/v1/payment/verify/**").permitAll()
             .pathMatchers("/v1/payment/**").hasRoleAndLevel("user", "Trusted")
             .pathMatchers("/v1/invoice/**").hasRoleAndLevel("user", "Trusted")
             .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
